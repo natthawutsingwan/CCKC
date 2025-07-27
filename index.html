@@ -442,6 +442,23 @@
             background: #f44336;
         }
         
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         @media (max-width: 768px) {
             .tabs {
                 flex-direction: column;
@@ -466,7 +483,7 @@
     <div class="container">
         <header>
             <h1><i class="fas fa-cash-register"></i> ระบบจัดการสต็อกและขายสินค้า</h1>
-            <p>จัดการสินค้าและขายสินค้าได้ในแอปเดียว</p>
+            <p>เชื่อมต่อกับ Google Sheets</p>
         </header>
         
         <div class="tabs">
@@ -483,8 +500,11 @@
                 <button><i class="fas fa-search"></i> ค้นหา</button>
             </div>
             
-            <div class="products-grid" id="products-pos">
-                <!-- สินค้าจะแสดงที่นี่ -->
+            <div id="products-pos-container">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>กำลังโหลดข้อมูลสินค้า...</p>
+                </div>
             </div>
             
             <div class="cart-section">
@@ -548,7 +568,12 @@
                         </tr>
                     </thead>
                     <tbody id="products-table">
-                        <!-- รายการสินค้าจะแสดงที่นี่ -->
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <i class="fas fa-spinner"></i>
+                                <p>กำลังโหลดข้อมูลสินค้า...</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -562,13 +587,13 @@
             
             <div class="form-group">
                 <label for="product-name">ชื่อสินค้า:</label>
-                <input type="text" id="product-name" placeholder="ชื่อสินค้า">
+                <input type="text" id="product-name" placeholder="ชื่อสินค้า" name="ชื่อสินค้า" required>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
                     <label for="product-price">ราคา:</label>
-                    <input type="number" id="product-price" placeholder="0.00">
+                    <input type="number" id="product-price" placeholder="0.00" step="0.01">
                 </div>
                 
                 <div class="form-group">
@@ -593,16 +618,10 @@
     <div id="notification" class="notification"></div>
     
     <script>
-        // ข้อมูลตัวอย่าง (ในระบบจริงจะดึงจาก Google Sheets)
-        let products = [
-            { id: 1, name: "ส้ม", price: 20, stock: 50, description: "ส้มหวานจากสวนเชียงใหม่" },
-            { id: 2, name: "แอปเปิ้ล", price: 25, stock: 30, description: "แอปเปิ้ลแดงจากอเมริกา" },
-            { id: 3, name: "กล้วย", price: 15, stock: 20, description: "กล้วยหอมทอง" },
-            { id: 4, name: "แตงโม", price: 50, stock: 10, description: "แตงโมเขียวหวาน" },
-            { id: 5, name: "มะม่วง", price: 35, stock: 5, description: "มะม่วงน้ำดอกไม้" },
-            { id: 6, name: "สตรอเบอร์รี่", price: 80, stock: 25, description: "สตรอเบอร์รี่ญี่ปุ่น" }
-        ];
+        // URL ของ Google Apps Script ที่คุณให้มา
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDWWpTE282jyj8Kt-PrC0hiCSO3pa64tw5baGWlEFdbx5_LsoD2JcLy_upKu6hoJqTQA/exec";
         
+        let products = [];
         let cart = [];
         let editingProductId = null;
         
@@ -635,37 +654,189 @@
             document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
         }
         
+        // ฟังก์ชันดึงข้อมูลสินค้าจาก Google Sheets
+        async function fetchProducts() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getProducts`);
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    products = data.products.map(product => ({
+                        id: parseInt(product.id),
+                        name: product.name,
+                        price: parseFloat(product.price),
+                        stock: parseInt(product.stock),
+                        description: product.description || ""
+                    }));
+                    return true;
+                } else {
+                    throw new Error(data.message || "ไม่สามารถดึงข้อมูลสินค้าได้");
+                }
+            } catch (error) {
+                console.error("Error fetching products:", error);
+                showNotification("ไม่สามารถดึงข้อมูลสินค้าได้: " + error.message, false);
+                return false;
+            }
+        }
+        
+        // ฟังก์ชันบันทึกสินค้าไปยัง Google Sheets
+        async function saveProductToSheet(productData) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addProduct',
+                        ...productData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    return true;
+                } else {
+                    throw new Error(data.message || "ไม่สามารถบันทึกสินค้าได้");
+                }
+            } catch (error) {
+                console.error("Error saving product:", error);
+                showNotification("ไม่สามารถบันทึกสินค้าได้: " + error.message, false);
+                return false;
+            }
+        }
+        
+        // ฟังก์ชันอัปเดตสินค้าใน Google Sheets
+        async function updateProductInSheet(productId, productData) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'updateProduct',
+                        id: productId,
+                        ...productData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    return true;
+                } else {
+                    throw new Error(data.message || "ไม่สามารถอัปเดตสินค้าได้");
+                }
+            } catch (error) {
+                console.error("Error updating product:", error);
+                showNotification("ไม่สามารถอัปเดตสินค้าได้: " + error.message, false);
+                return false;
+            }
+        }
+        
+        // ฟังก์ชันลบสินค้าจาก Google Sheets
+        async function deleteProductFromSheet(productId) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'deleteProduct',
+                        id: productId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    return true;
+                } else {
+                    throw new Error(data.message || "ไม่สามารถลบสินค้าได้");
+                }
+            } catch (error) {
+                console.error("Error deleting product:", error);
+                showNotification("ไม่สามารถลบสินค้าได้: " + error.message, false);
+                return false;
+            }
+        }
+        
+        // ฟังก์ชันบันทึกยอดขายไปยัง Google Sheets
+        async function saveSaleToSheet(saleData) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addSale',
+                        ...saleData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    return true;
+                } else {
+                    throw new Error(data.message || "ไม่สามารถบันทึกยอดขายได้");
+                }
+            } catch (error) {
+                console.error("Error saving sale:", error);
+                showNotification("ไม่สามารถบันทึกยอดขายได้: " + error.message, false);
+                return false;
+            }
+        }
+        
         // ฟังก์ชันแสดงสินค้าในหน้า POS
         function renderPOSProducts(productsToShow) {
-            const container = document.getElementById('products-pos');
-            container.innerHTML = '';
+            const container = document.getElementById('products-pos-container');
+            
+            if (productsToShow.length === 0) {
+                container.innerHTML = '<div class="loading"><p>ไม่พบสินค้า</p></div>';
+                return;
+            }
+            
+            let html = '<div class="products-grid">';
             
             productsToShow.forEach(product => {
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.innerHTML = `
-                    <div class="product-image">
-                        <i class="fas fa-apple-alt"></i>
-                    </div>
-                    <div class="product-name">${product.name}</div>
-                    <div class="product-price">฿${product.price.toFixed(2)}</div>
-                    <div class="product-stock ${product.stock < 10 ? 'stock-low' : ''}">
-                        สต็อก: ${product.stock} ชิ้น
-                    </div>
-                    <div class="product-actions">
-                        <button class="btn btn-primary" onclick="addToCart(${product.id})">
-                            <i class="fas fa-plus"></i> เพิ่ม
-                        </button>
+                html += `
+                    <div class="product-card">
+                        <div class="product-image">
+                            <i class="fas fa-apple-alt"></i>
+                        </div>
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-price">฿${product.price.toFixed(2)}</div>
+                        <div class="product-stock ${product.stock < 10 ? 'stock-low' : ''}">
+                            สต็อก: ${product.stock} ชิ้น
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn btn-primary" onclick="addToCart(${product.id})">
+                                <i class="fas fa-plus"></i> เพิ่ม
+                            </button>
+                        </div>
                     </div>
                 `;
-                container.appendChild(card);
             });
+            
+            html += '</div>';
+            container.innerHTML = html;
         }
         
         // ฟังก์ชันแสดงสินค้าในหน้าจัดการสินค้า
         function renderInventoryProducts(productsToShow) {
             const tbody = document.getElementById('products-table');
-            tbody.innerHTML = '';
+            
+            if (productsToShow.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="loading"><p>ไม่พบสินค้า</p></td></tr>';
+                return;
+            }
+            
+            let html = '';
             
             productsToShow.forEach(product => {
                 let statusClass = 'status-in-stock';
@@ -679,27 +850,29 @@
                     statusText = 'สต็อกต่ำ';
                 }
                 
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${product.id}</td>
-                    <td>${product.name}</td>
-                    <td>฿${product.price.toFixed(2)}</td>
-                    <td>${product.stock}</td>
-                    <td>
-                        <span class="status-indicator ${statusClass}"></span>
-                        ${statusText}
-                    </td>
-                    <td>
-                        <button class="btn btn-warning" onclick="editProduct(${product.id})">
-                            <i class="fas fa-edit"></i> แก้ไข
-                        </button>
-                        <button class="btn btn-danger" onclick="deleteProduct(${product.id})">
-                            <i class="fas fa-trash"></i> ลบ
-                        </button>
-                    </td>
+                html += `
+                    <tr>
+                        <td>${product.id}</td>
+                        <td>${product.name}</td>
+                        <td>฿${product.price.toFixed(2)}</td>
+                        <td>${product.stock}</td>
+                        <td>
+                            <span class="status-indicator ${statusClass}"></span>
+                            ${statusText}
+                        </td>
+                        <td>
+                            <button class="btn btn-warning" onclick="editProduct(${product.id})">
+                                <i class="fas fa-edit"></i> แก้ไข
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteProduct(${product.id})">
+                                <i class="fas fa-trash"></i> ลบ
+                            </button>
+                        </td>
+                    </tr>
                 `;
-                tbody.appendChild(row);
             });
+            
+            tbody.innerHTML = html;
         }
         
         // ฟังก์ชันเพิ่มสินค้าลงตะกร้า
@@ -807,7 +980,7 @@
         }
         
         // ฟังก์ชันชำระเงิน
-        function checkout() {
+        async function checkout() {
             if (cart.length === 0) {
                 showNotification('กรุณาเลือกสินค้าก่อนชำระเงิน', false);
                 return;
@@ -821,16 +994,33 @@
                 return;
             }
             
-            // อัปเดตสต็อก
+            // สร้างข้อมูลยอดขาย
+            const saleData = {
+                items: cart.map(item => ({
+                    product_id: item.id,
+                    quantity: item.quantity,
+                    total_price: (item.price * item.quantity).toFixed(2)
+                })),
+                total_amount: total.toFixed(2),
+                payment_amount: payment.toFixed(2),
+                change_amount: (payment - total).toFixed(2)
+            };
+            
+            // บันทึกยอดขาย
+            const saleSaved = await saveSaleToSheet(saleData);
+            
+            if (!saleSaved) {
+                showNotification('ไม่สามารถบันทึกยอดขายได้', false);
+                return;
+            }
+            
+            // อัปเดตสต็อกใน local
             cart.forEach(item => {
                 const product = products.find(p => p.id === item.id);
                 if (product) {
                     product.stock -= item.quantity;
                 }
             });
-            
-            // บันทึกยอดขาย (ในระบบจริงจะส่งไปยัง Google Sheets)
-            console.log('บันทึกยอดขาย:', cart);
             
             // ล้างตะกร้า
             cart = [];
@@ -871,7 +1061,7 @@
         }
         
         // ฟังก์ชันบันทึกสินค้า
-        function saveProduct() {
+        async function saveProduct() {
             const name = document.getElementById('product-name').value.trim();
             const price = parseFloat(document.getElementById('product-price').value);
             const stock = parseInt(document.getElementById('product-stock').value);
@@ -882,35 +1072,47 @@
                 return;
             }
             
+            const productData = {
+                name: name,
+                price: price.toFixed(2),
+                stock: stock,
+                description: description
+            };
+            
+            let success = false;
+            
             if (editingProductId) {
                 // แก้ไขสินค้า
-                const product = products.find(p => p.id === editingProductId);
-                if (product) {
-                    product.name = name;
-                    product.price = price;
-                    product.stock = stock;
-                    product.description = description;
+                success = await updateProductInSheet(editingProductId, productData);
+                if (success) {
+                    // อัปเดตใน local
+                    const product = products.find(p => p.id === editingProductId);
+                    if (product) {
+                        product.name = name;
+                        product.price = price;
+                        product.stock = stock;
+                        product.description = description;
+                    }
+                    showNotification('อัปเดตสินค้าเรียบร้อยแล้ว');
                 }
-                showNotification('อัปเดตสินค้าเรียบร้อยแล้ว');
             } else {
                 // เพิ่มสินค้าใหม่
-                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-                products.push({
-                    id: newId,
-                    name: name,
-                    price: price,
-                    stock: stock,
-                    description: description
-                });
-                showNotification('เพิ่มสินค้าเรียบร้อยแล้ว');
+                success = await saveProductToSheet(productData);
+                if (success) {
+                    // ดึงข้อมูลใหม่จาก Sheets
+                    await loadProducts();
+                    showNotification('เพิ่มสินค้าเรียบร้อยแล้ว');
+                }
             }
             
-            // อัปเดตการแสดงผล
-            renderPOSProducts(products);
-            renderInventoryProducts(products);
-            
-            // ปิดโมดัล
-            document.getElementById('product-modal').style.display = 'none';
+            if (success) {
+                // อัปเดตการแสดงผล
+                renderPOSProducts(products);
+                renderInventoryProducts(products);
+                
+                // ปิดโมดัล
+                document.getElementById('product-modal').style.display = 'none';
+            }
         }
         
         // ฟังก์ชันแก้ไขสินค้า
@@ -922,12 +1124,17 @@
         }
         
         // ฟังก์ชันลบสินค้า
-        function deleteProduct(productId) {
+        async function deleteProduct(productId) {
             if (confirm('คุณแน่ใจหรือไม่ที่ต้องการลบสินค้านี้?')) {
-                products = products.filter(p => p.id !== productId);
-                renderPOSProducts(products);
-                renderInventoryProducts(products);
-                showNotification('ลบสินค้าเรียบร้อยแล้ว');
+                const success = await deleteProductFromSheet(productId);
+                
+                if (success) {
+                    // ลบจาก local
+                    products = products.filter(p => p.id !== productId);
+                    renderPOSProducts(products);
+                    renderInventoryProducts(products);
+                    showNotification('ลบสินค้าเรียบร้อยแล้ว');
+                }
             }
         }
         
@@ -955,11 +1162,25 @@
             }
         }
         
+        // ฟังก์ชันโหลดข้อมูลสินค้า
+        async function loadProducts() {
+            const loaded = await fetchProducts();
+            if (loaded) {
+                renderPOSProducts(products);
+                renderInventoryProducts(products);
+            } else {
+                // แสดงข้อความ error ในทั้งสองหน้า
+                document.getElementById('products-pos-container').innerHTML = 
+                    '<div class="loading"><p>ไม่สามารถโหลดข้อมูลสินค้าได้</p></div>';
+                document.getElementById('products-table').innerHTML = 
+                    '<tr><td colspan="6" class="loading"><p>ไม่สามารถโหลดข้อมูลสินค้าได้</p></td></tr>';
+            }
+        }
+        
         // ตั้งค่า Event Listeners เมื่อโหลดหน้าเว็บ
-        document.addEventListener('DOMContentLoaded', function() {
-            // แสดงสินค้าเริ่มต้น
-            renderPOSProducts(products);
-            renderInventoryProducts(products);
+        document.addEventListener('DOMContentLoaded', async function() {
+            // โหลดข้อมูลสินค้า
+            await loadProducts();
             
             // ตั้งค่าการเปลี่ยนแท็บ
             document.querySelectorAll('.tab-btn').forEach(btn => {
