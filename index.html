@@ -524,8 +524,8 @@
     <!-- แจ้งเตือน -->
     <div id="notification" class="notification"></div>
     <script>
-        // TODO: เปลี่ยน URL นี้เป็น URL ของ Google Apps Script ของคุณ
-        const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+        // URL ของ Google Apps Script ที่คุณให้มา
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDWWpTE282jyj8Kt-PrC0hiCSO3pa64tw5baGWlEFdbx5_LsoD2JcLy_upKu6hoJqTQA/exec";
         let products = [];
         let cart = [];
         let editingProductId = null;
@@ -579,97 +579,102 @@
         // ฟังก์ชันบันทึกสินค้าไปยัง Google Sheets
         async function saveProductToSheet(productData) {
             try {
-                const formData = new FormData();
-                formData.append('action', 'addProduct');
-                Object.keys(productData).forEach(key => {
-                    formData.append(key, productData[key]);
-                });
-
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addProduct',
+                        ...productData
+                    })
                 });
                 const data = await response.json();
                 if (data.status === "success") {
-                    return { success: true };
+                    return true;
                 } else {
-                    return { success: false, message: data.message || "ไม่สามารถบันทึกสินค้าได้ (จากเซิร์ฟเวอร์)" };
+                    throw new Error(data.message || "ไม่สามารถบันทึกสินค้าได้");
                 }
             } catch (error) {
                 console.error("Error saving product:", error);
-                return { success: false, message: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์เพื่อบันทึกสินค้าได้: " + error.message };
+                showNotification("ไม่สามารถบันทึกสินค้าได้: " + error.message, false);
+                return false;
             }
         }
         // ฟังก์ชันอัปเดตสินค้าใน Google Sheets
         async function updateProductInSheet(productId, productData) {
             try {
-                 const formData = new FormData();
-                 formData.append('action', 'updateProduct');
-                 formData.append('id', productId);
-                 Object.keys(productData).forEach(key => {
-                     formData.append(key, productData[key]);
-                 });
-
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'updateProduct',
+                        id: productId,
+                        ...productData
+                    })
                 });
                 const data = await response.json();
                 if (data.status === "success") {
-                    return { success: true };
+                    return true;
                 } else {
-                    return { success: false, message: data.message || "ไม่สามารถอัปเดตสินค้าได้ (จากเซิร์ฟเวอร์)" };
+                    throw new Error(data.message || "ไม่สามารถอัปเดตสินค้าได้");
                 }
             } catch (error) {
                 console.error("Error updating product:", error);
-                return { success: false, message: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์เพื่ออัปเดตสินค้าได้: " + error.message };
+                showNotification("ไม่สามารถอัปเดตสินค้าได้: " + error.message, false);
+                return false;
             }
         }
         // ฟังก์ชันลบสินค้าจาก Google Sheets
         async function deleteProductFromSheet(productId) {
             try {
-                const formData = new FormData();
-                formData.append('action', 'deleteProduct');
-                formData.append('id', productId);
-
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'deleteProduct',
+                        id: productId
+                    })
                 });
                 const data = await response.json();
                 if (data.status === "success") {
-                    return { success: true };
+                    return true;
                 } else {
-                    return { success: false, message: data.message || "ไม่สามารถลบสินค้าได้ (จากเซิร์ฟเวอร์)" };
+                    throw new Error(data.message || "ไม่สามารถลบสินค้าได้");
                 }
             } catch (error) {
                 console.error("Error deleting product:", error);
-                return { success: false, message: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์เพื่อลบสินค้าได้: " + error.message };
+                showNotification("ไม่สามารถลบสินค้าได้: " + error.message, false);
+                return false;
             }
         }
         // ฟังก์ชันบันทึกยอดขายไปยัง Google Sheets
         async function saveSaleToSheet(saleData) {
-             try {
-                 const formData = new FormData();
-                 formData.append('action', 'addSale');
-                 formData.append('items', JSON.stringify(saleData.items));
-                 formData.append('total_amount', saleData.total_amount);
-                 formData.append('payment_amount', saleData.payment_amount);
-                 formData.append('change_amount', saleData.change_amount);
-
+            try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addSale',
+                        ...saleData
+                    })
                 });
                 const data = await response.json();
                 if (data.status === "success") {
-                    return { success: true };
+                    return true;
                 } else {
-                    return { success: false, message: data.message || "ไม่สามารถบันทึกยอดขายได้ (จากเซิร์ฟเวอร์)" };
+                    throw new Error(data.message || "ไม่สามารถบันทึกยอดขายได้");
                 }
             } catch (error) {
                 console.error("Error saving sale:", error);
-                return { success: false, message: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์เพื่อบันทึกยอดขายได้: " + error.message };
+                showNotification("ไม่สามารถบันทึกยอดขายได้: " + error.message, false);
+                return false;
             }
         }
         // ฟังก์ชันแสดงสินค้าในหน้า POS
@@ -852,32 +857,53 @@
                 change_amount: (payment - total).toFixed(2)
             };
             // บันทึกยอดขาย
-            const saleResult = await saveSaleToSheet(saleData);
-            if (!saleResult.success) {
-                showNotification(saleResult.message, false);
+            const saleSaved = await saveSaleToSheet(saleData);
+            if (!saleSaved) {
+                showNotification('ไม่สามารถบันทึกยอดขายได้', false);
                 return;
             }
-            // อัปเดตสต็อกใน local
-            cart.forEach(item => {
+            // อัปเดตสต็อกใน local และใน Google Sheets
+            const updatePromises = cart.map(async item => {
                 const product = products.find(p => p.id === item.id);
                 if (product) {
+                    const originalStock = product.stock;
                     product.stock -= item.quantity;
+                    // อัปเดตสต็อกใน Google Sheets
+                    return await updateProductInSheet(product.id, {
+                        name: product.name,
+                        price: product.price.toFixed(2),
+                        stock: product.stock,
+                        description: product.description
+                    }).catch(error => {
+                        // ถ้าอัปเดตไม่สำเร็จ ให้คืนค่าสต็อกกลับ
+                        console.error("Failed to update stock for product", product.id, error);
+                        product.stock = originalStock;
+                        showNotification(`ไม่สามารถอัปเดตสต็อกสินค้า ${product.name} ได้`, false);
+                        return false;
+                    });
                 }
+                return true; // ถ้าไม่พบสินค้า ถือว่าผ่าน
             });
+
+            // รอให้การอัปเดตสต็อกทั้งหมดเสร็จสิ้น
+            await Promise.all(updatePromises);
+
+            // โหลดข้อมูลใหม่จาก Google Sheets เพื่อความแน่นอน
+            await loadProducts();
+
             // ล้างตะกร้า
             cart = [];
             renderCart();
             document.getElementById('payment-amount').value = '';
             document.getElementById('change-amount').textContent = '฿0.00';
-            // อัปเดตการแสดงผล
-            renderPOSProducts(products);
-            renderInventoryProducts(products);
+            
             showNotification('ชำระเงินเรียบร้อยแล้ว!');
         }
         // ฟังก์ชันเปิดฟอร์มเพิ่ม/แก้ไขสินค้า
         function openProductModal(isEdit = false, product = null) {
             const modal = document.getElementById('product-modal');
             const title = document.getElementById('modal-title');
+            const saveBtn = document.getElementById('save-product-btn');
             if (isEdit && product) {
                 title.textContent = 'แก้ไขสินค้า';
                 document.getElementById('product-name').value = product.name;
@@ -901,59 +927,47 @@
             const price = parseFloat(document.getElementById('product-price').value);
             const stock = parseInt(document.getElementById('product-stock').value);
             const description = document.getElementById('product-description').value.trim();
-
             if (!name || isNaN(price) || isNaN(stock)) {
                 showNotification('กรุณากรอกข้อมูลให้ครบถ้วน', false);
                 return;
             }
-
             const productData = {
                 name: name,
                 price: price.toFixed(2),
                 stock: stock,
                 description: description
             };
-
-            let result;
+            let success = false;
             if (editingProductId) {
                 // แก้ไขสินค้า
-                result = await updateProductInSheet(editingProductId, productData);
-                if (result.success) {
+                success = await updateProductInSheet(editingProductId, productData);
+                if (success) {
                     // อัปเดตใน local
-                    const productIndex = products.findIndex(p => p.id === editingProductId);
-                    if (productIndex !== -1) {
-                        products[productIndex] = { ...products[productIndex], ...productData, id: editingProductId };
+                    const product = products.find(p => p.id === editingProductId);
+                    if (product) {
+                        product.name = name;
+                        product.price = price;
+                        product.stock = stock;
+                        product.description = description;
                     }
                     showNotification('อัปเดตสินค้าเรียบร้อยแล้ว');
-                } else {
-                    showNotification(result.message, false);
-                    return;
                 }
             } else {
                 // เพิ่มสินค้าใหม่
-                result = await saveProductToSheet(productData);
-                if (result.success) {
-                    // ดึงข้อมูลใหม่จาก Sheets เพื่อให้ได้ ID ที่ถูกต้อง
-                    const loaded = await fetchProducts();
-                    if (loaded) {
-                        showNotification('เพิ่มสินค้าเรียบร้อยแล้ว');
-                    } else {
-                        showNotification('เพิ่มสินค้าสำเร็จ แต่โหลดข้อมูลใหม่ไม่ได้', false);
-                    }
-                } else {
-                    showNotification(result.message, false);
-                    return;
+                success = await saveProductToSheet(productData);
+                if (success) {
+                    // ดึงข้อมูลใหม่จาก Sheets
+                    await loadProducts();
+                    showNotification('เพิ่มสินค้าเรียบร้อยแล้ว');
                 }
             }
-
-            // หากสำเร็จทั้งหมด
-            // อัปเดตการแสดงผล
-            renderPOSProducts(products);
-            renderInventoryProducts(products);
-            // ปิดโมดัล
-            document.getElementById('product-modal').style.display = 'none';
-            // รีเซ็ต editingProductId
-            editingProductId = null;
+            if (success) {
+                // อัปเดตการแสดงผล
+                renderPOSProducts(products);
+                renderInventoryProducts(products);
+                // ปิดโมดัล
+                document.getElementById('product-modal').style.display = 'none';
+            }
         }
         // ฟังก์ชันแก้ไขสินค้า
         function editProduct(productId) {
@@ -965,21 +979,19 @@
         // ฟังก์ชันลบสินค้า
         async function deleteProduct(productId) {
             if (confirm('คุณแน่ใจหรือไม่ที่ต้องการลบสินค้านี้?')) {
-                const result = await deleteProductFromSheet(productId);
-                if (result.success) {
+                const success = await deleteProductFromSheet(productId);
+                if (success) {
                     // ลบจาก local
                     products = products.filter(p => p.id !== productId);
                     renderPOSProducts(products);
                     renderInventoryProducts(products);
                     showNotification('ลบสินค้าเรียบร้อยแล้ว');
-                } else {
-                    showNotification(result.message, false);
                 }
             }
         }
         // ฟังก์ชันค้นหาสินค้า
         function searchProducts(query, target) {
-            const filtered = products.filter(product =>
+            const filtered = products.filter(product => 
                 product.name.toLowerCase().includes(query.toLowerCase())
             );
             if (target === 'pos') {
@@ -1006,9 +1018,9 @@
                 renderInventoryProducts(products);
             } else {
                 // แสดงข้อความ error ในทั้งสองหน้า
-                document.getElementById('products-pos-container').innerHTML =
+                document.getElementById('products-pos-container').innerHTML = 
                     '<div class="loading"><p>ไม่สามารถโหลดข้อมูลสินค้าได้</p></div>';
-                document.getElementById('products-table').innerHTML =
+                document.getElementById('products-table').innerHTML = 
                     '<tr><td colspan="6" class="loading"><p>ไม่สามารถโหลดข้อมูลสินค้าได้</p></td></tr>';
             }
         }
@@ -1033,7 +1045,6 @@
             // ตั้งค่าปุ่มยกเลิก
             document.getElementById('cancel-product-btn').addEventListener('click', () => {
                 document.getElementById('product-modal').style.display = 'none';
-                editingProductId = null;
             });
             // ตั้งค่าการคำนวณเงินทอน
             document.getElementById('payment-amount').addEventListener('input', calculateChange);
