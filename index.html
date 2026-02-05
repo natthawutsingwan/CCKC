@@ -3,85 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chicken Noodle POS</title>
+    <title>POS หมี่ไก่ฉีก & คิวรัน</title>
     <style>
-        body { font-family: 'Tahoma', sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; }
-        h2 { text-align: center; color: #d32f2f; }
-        .item-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        label { font-weight: bold; }
-        input[type="number"] { width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
-        .calculation-area { line-height: 1.8; margin-bottom: 20px; }
-        .btn-group { display: flex; gap: 10px; }
-        button { flex: 1; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-calc { background-color: #4caf50; color: white; }
-        .btn-print { background-color: #2196f3; color: white; }
-        #receipt { margin-top: 20px; padding: 15px; border: 1px dashed #999; display: none; background: #fffdf0; }
-        @media print { body * { visibility: hidden; } #receipt, #receipt * { visibility: visible; } #receipt { position: absolute; left: 0; top: 0; width: 100%; } }
+        body { font-family: 'Courier New', 'Tahoma', sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 380px; }
+        h2 { text-align: center; color: #d32f2f; margin-bottom: 5px; }
+        .queue-banner { text-align: center; font-size: 24px; font-weight: bold; color: #2196f3; margin-bottom: 20px; }
+        
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="number"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 18px; box-sizing: border-box; }
+        
+        .total-box { background: #fff9c4; padding: 15px; border-radius: 8px; text-align: center; margin-top: 10px; font-size: 20px; border: 2px solid #fbc02d; }
+        
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        button { padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+        .btn-print { background-color: #4caf50; color: white; grid-column: span 2; }
+        .btn-reset { background-color: #9e9e9e; color: white; font-size: 12px; padding: 8px; margin-top: 20px; }
+        button:active { transform: scale(0.98); }
+
+        /* สไตล์ใบเสร็จ */
+        #receipt-print { 
+            display: none; 
+            width: 58mm; /* ขนาดมาตรฐานเครื่องพิมพ์ความร้อน */
+            padding: 10px;
+            color: black;
+            line-height: 1.4;
+        }
+        .receipt-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+        .receipt-body { margin: 10px 0; font-size: 14px; }
+        .receipt-row { display: flex; justify-content: space-between; }
+        .receipt-footer { border-top: 1px dashed #000; padding-top: 10px; text-align: center; font-size: 12px; }
+        .q-number { font-size: 32px; font-weight: bold; margin: 10px 0; border: 2px solid black; display: inline-block; padding: 5px 15px; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #receipt-print, #receipt-print * { visibility: visible; }
+            #receipt-print { position: absolute; left: 0; top: 0; display: block; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🍜 ระบบขายหมี่ไก่ฉีก</h2>
+    <h2>🍜 หมี่ไก่ฉีก POS</h2>
+    <div class="queue-banner">คิวถัดไป: <span id="next-q">001</span></div>
     
-    <div class="item-info">
-        <span>หมี่ไก่ฉีก (ชุดละ 50.-)</span>
-        <input type="number" id="qty" value="1" min="1">
+    <div class="input-group">
+        <label>จำนวน (ชุดละ 50.-)</label>
+        <input type="number" id="qty" value="1" min="1" oninput="calculate()">
     </div>
 
-    <div class="calculation-area">
-        <label>ส่วนลด (บาท):</label>
-        <input type="number" id="discount" value="0" min="0" style="width: 80%; margin-top: 5px;"><br>
-        <hr>
-        <strong>รวมทั้งสิ้น: <span id="total-display">50</span> บาท</strong>
+    <div class="input-group">
+        <label>ส่วนลด (บาท)</label>
+        <input type="number" id="discount" value="0" min="0" oninput="calculate()">
+    </div>
+
+    <div class="total-box">
+        ยอดสุทธิ: <strong id="total-display">50</strong> บาท
     </div>
 
     <div class="btn-group">
-        <button class="btn-calc" onclick="calculate()">คำนวณเงิน</button>
-        <button class="btn-print" onclick="printReceipt()">พิมพ์ใบเสร็จ</button>
+        <button class="btn-print" onclick="processOrder()">พิมพ์ใบเสร็จ & รันคิว</button>
     </div>
 
-    <div id="receipt">
-        <center>
-            <strong>*** ใบเสร็จรับเงิน ***</strong><br>
-            ร้านหมี่ไก่ฉีกแสนอร่อย
-        </center>
-        <p id="receipt-date" style="font-size: 12px;"></p>
-        <hr>
-        <div id="receipt-details"></div>
-        <hr>
-        <center>ขอบคุณที่อุดหนุนครับ!</center>
+    <center>
+        <button class="btn-reset" onclick="resetQueue()">เริ่มวันใหม่ (ล้างคิว)</button>
+    </center>
+</div>
+
+<div id="receipt-print">
+    <div class="receipt-header">
+        <strong style="font-size: 18px;">ร้านหมี่ไก่ฉีก</strong><br>
+        <div class="q-number" id="r-q">001</div><br>
+        <span id="r-date"></span>
+    </div>
+    
+    <div class="receipt-body">
+        <div class="receipt-row">
+            <span>หมี่ไก่ฉีก x <span id="r-qty"></span></span>
+            <span id="r-subtotal"></span>
+        </div>
+        <div class="receipt-row" id="r-discount-row">
+            <span>ส่วนลด</span>
+            <span id="r-discount"></span>
+        </div>
+        <hr style="border: none; border-top: 1px solid black;">
+        <div class="receipt-row" style="font-weight: bold; font-size: 16px;">
+            <span>รวมทั้งสิ้น</span>
+            <span id="r-total"></span>
+        </div>
+    </div>
+
+    <div class="receipt-footer">
+        ขอบคุณที่อุดหนุนครับ/ค่ะ<br>
+        (โปรดรอเรียกตามคิว)
     </div>
 </div>
 
 <script>
-    const pricePerUnit = 50;
+    let currentQueue = parseInt(localStorage.getItem('pos_queue')) || 1;
+    updateQueueDisplay();
+
+    function updateQueueDisplay() {
+        document.getElementById('next-q').innerText = currentQueue.toString().padStart(3, '0');
+    }
 
     function calculate() {
-        const qty = document.getElementById('qty').value;
-        const discount = document.getElementById('discount').value;
-        const total = (qty * pricePerUnit) - discount;
-        
-        document.getElementById('total-display').innerText = total > 0 ? total : 0;
+        const qty = document.getElementById('qty').value || 0;
+        const discount = document.getElementById('discount').value || 0;
+        const total = (qty * 50) - discount;
+        document.getElementById('total-display').innerText = total > 0 ? total.toLocaleString() : 0;
         return { qty, discount, total };
     }
 
-    function printReceipt() {
+    function processOrder() {
         const data = calculate();
-        const date = new Date().toLocaleString('th-TH');
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('th-TH') + " " + now.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
+
+        // ใส่ข้อมูลในใบเสร็จ
+        document.getElementById('r-q').innerText = currentQueue.toString().padStart(3, '0');
+        document.getElementById('r-date').innerText = dateStr;
+        document.getElementById('r-qty').innerText = data.qty;
+        document.getElementById('r-subtotal').innerText = (data.qty * 50).toLocaleString();
+        document.getElementById('r-discount').innerText = "-" + data.discount;
+        document.getElementById('r-total').innerText = (data.total > 0 ? data.total : 0).toLocaleString();
+
+        // พิมพ์
+        window.print();
+
+        // เพิ่มคิว
+        currentQueue++;
+        localStorage.setItem('pos_queue', currentQueue);
+        updateQueueDisplay();
         
-        document.getElementById('receipt-date').innerText = "วันที่: " + date;
-        document.getElementById('receipt-details').innerHTML = `
-            หมี่ไก่ฉีก x ${data.qty} : ${data.qty * pricePerUnit} บาท<br>
-            ส่วนลด: ${data.discount} บาท<br>
-            <strong>ยอดสุทธิ: ${data.total > 0 ? data.total : 0} บาท</strong>
-        `;
-        
-        document.getElementById('receipt').style.display = 'block';
-        setTimeout(() => {
-            window.print();
-        }, 500);
+        // รีเซ็ตค่าหน้าจอ
+        document.getElementById('qty').value = 1;
+        document.getElementById('discount').value = 0;
+        calculate();
+    }
+
+    function resetQueue() {
+        if(confirm("ต้องการเริ่มคิวใหม่ที่ 001 ใช่หรือไม่?")) {
+            currentQueue = 1;
+            localStorage.setItem('pos_queue', currentQueue);
+            updateQueueDisplay();
+        }
     }
 </script>
 
