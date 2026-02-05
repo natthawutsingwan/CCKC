@@ -3,47 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Professional POS - Chicken Noodle</title>
+    <title>Chicken Noodle POS Pro</title>
     <style>
+        /* --- General Styles (Mobile First) --- */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Tahoma', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; }
-        .pos-app { width: 100%; max-width: 500px; background: #fff; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        
-        /* Header */
-        .header { background: #d32f2f; color: white; padding: 15px; text-align: center; position: relative; }
-        .q-display { font-size: 24px; font-weight: bold; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 5px 15px; margin-top: 5px; display: inline-block; }
+        body { 
+            font-family: 'Tahoma', sans-serif; 
+            background: #f0f2f5; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            height: 100vh;
+        }
+        .pos-app { 
+            width: 100%; 
+            max-width: 500px; 
+            background: #fff; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
 
-        /* Menu Section */
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; background: #fff; border-bottom: 2px solid #eee; }
-        .menu-item { background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .menu-item:active { background: #e2e6ea; transform: scale(0.95); }
-        .menu-item b { display: block; font-size: 16px; color: #333; }
+        /* --- Header & Queue --- */
+        .header { background: #d32f2f; color: white; padding: 15px; text-align: center; }
+        .header h2 { margin: 0; font-size: 20px; }
+        .q-badge { 
+            background: rgba(0,0,0,0.3); 
+            padding: 5px 15px; 
+            border-radius: 8px; 
+            font-size: 24px; 
+            font-weight: bold; 
+            margin-top: 5px; 
+            display: inline-block;
+        }
+
+        /* --- Menu Grid --- */
+        .menu-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 8px; 
+            padding: 10px; 
+            background: #fff;
+        }
+        .menu-item { 
+            background: #f8f9fa; 
+            border: 2px solid #eee; 
+            border-radius: 10px; 
+            padding: 12px; 
+            text-align: center; 
+            cursor: pointer; 
+        }
+        .menu-item:active { background: #e9ecef; transform: scale(0.97); }
+        .menu-item b { display: block; font-size: 15px; margin-bottom: 2px; }
         .menu-item span { color: #d32f2f; font-weight: bold; }
 
-        /* Order Summary */
-        .order-summary { flex-grow: 1; padding: 15px; overflow-y: auto; background: #fafafa; }
-        .order-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; border-bottom: 1px dashed #ddd; padding-bottom: 5px; }
+        /* --- Cart Section --- */
+        .cart-section { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            padding: 15px; 
+            background: #fafafa; 
+            border-top: 1px solid #eee;
+        }
+        .cart-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 0; 
+            border-bottom: 1px dashed #ddd;
+            font-size: 14px;
+        }
+        .remove-btn { color: #ff4757; font-weight: bold; margin-left: 10px; padding: 0 5px; }
 
-        /* Payment Section */
-        .payment-section { background: #fff; padding: 15px; border-top: 1px solid #eee; }
-        .display-box { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .total-text { font-size: 22px; font-weight: bold; color: #d32f2f; }
-        .cash-input-area { font-size: 20px; font-weight: bold; color: #007bff; border-bottom: 2px solid #007bff; min-width: 100px; text-align: right; }
+        /* --- Payment & Numpad --- */
+        .payment-area { background: white; padding: 15px; border-top: 2px solid #eee; }
+        .total-display { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .total-label { font-size: 18px; font-weight: bold; }
+        .total-val { font-size: 24px; color: #d32f2f; font-weight: bold; }
+        
+        .cash-display-row { font-size: 16px; margin-bottom: 10px; color: #007bff; display: flex; justify-content: space-between; }
+        .cash-amount { border-bottom: 2px solid #007bff; font-weight: bold; font-size: 20px; }
 
-        /* Numpad */
-        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
-        .num-btn { background: #f1f3f5; border: none; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .num-btn { 
+            background: #f1f3f5; 
+            border: none; 
+            padding: 15px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            border-radius: 8px; 
+        }
         .num-btn:active { background: #dee2e6; }
         .btn-clear { background: #ffebee; color: #d32f2f; }
-        .btn-confirm { background: #28a745; color: white; grid-column: span 3; margin-top: 10px; padding: 18px; font-size: 20px; border-radius: 10px; border: none; font-weight: bold; }
+        .btn-print { 
+            grid-column: span 3; 
+            background: #28a745; 
+            color: white; 
+            padding: 18px; 
+            font-size: 20px; 
+            border-radius: 10px; 
+            border: none; 
+            margin-top: 10px; 
+            font-weight: bold;
+        }
 
-        /* Receipt (Hidden) */
-        #receipt-section { display: none; width: 48mm; font-family: monospace; font-size: 11px; }
-
+        /* --- Professional Receipt Style (58mm) --- */
+        #receipt-print { 
+            display: none; 
+            width: 48mm; 
+            font-family: 'Courier New', monospace; 
+            font-size: 13px; 
+            color: #000; 
+            line-height: 1.2;
+        }
+        .r-center { text-align: center; }
+        .r-q-box { border: 2px solid #000; padding: 5px; margin: 5px auto; width: fit-content; }
+        .r-line { border-top: 1px dashed #000; margin: 5px 0; }
+        .r-flex { display: flex; justify-content: space-between; }
+        
         @media print {
             body * { visibility: hidden; }
-            #receipt-section, #receipt-section * { visibility: visible; }
-            #receipt-section { position: absolute; left: 0; top: 0; display: block; }
+            #receipt-print, #receipt-print * { visibility: visible; }
+            #receipt-print { position: absolute; left: 0; top: 0; display: block !important; }
+            @page { margin: 0; size: 58mm auto; }
         }
     </style>
 </head>
@@ -51,30 +132,35 @@
 
 <div class="pos-app">
     <div class="header">
-        <b>🍜 ร้านหมี่ไก่ฉีก</b><br>
-        <div class="q-display">คิว: <span id="q-val">001</span></div>
+        <h2>🍜 ระบบขายหมี่ไก่ฉีก</h2>
+        <div class="q-badge">คิว: <span id="q-text">001</span></div>
     </div>
 
     <div class="menu-grid">
-        <div class="menu-item" onclick="addItem('หมี่ไก่ฉีก', 50)"><b>หมี่ไก่ฉีก</b><span>50.-</span></div>
-        <div class="menu-item" onclick="addItem('หมี่หมูสับ', 50)"><b>หมี่หมูสับ</b><span>50.-</span></div>
-        <div class="menu-item" onclick="addItem('เพิ่มเส้นหมี่', 10)"><b>เพิ่มเส้น</b><span>10.-</span></div>
-        <div class="menu-item" onclick="addItem('เพิ่มไก่ฉีก', 10)"><b>เพิ่มไก่</b><span>10.-</span></div>
-        <div class="menu-item" onclick="addItem('นํ้าพริกกากหมู', 15)"><b>กากหมู</b><span>15.-</span></div>
-        <div class="menu-item" onclick="addItem('ส่วนลด', -1, true)"><b>ใส่ส่วนลด</b><span>คีย์ระบุ</span></div>
+        <div class="menu-item" onclick="addToCart('หมี่ไก่ฉีก', 50)"><b>หมี่ไก่ฉีก</b><span>50.-</span></div>
+        <div class="menu-item" onclick="addToCart('หมี่หมูสับ', 50)"><b>หมี่หมูสับ</b><span>50.-</span></div>
+        <div class="menu-item" onclick="addToCart('เพิ่มเส้นหมี่', 10)"><b>เพิ่มเส้น</b><span>10.-</span></div>
+        <div class="menu-item" onclick="addToCart('เพิ่มไก่ฉีก', 10)"><b>เพิ่มไก่</b><span>10.-</span></div>
+        <div class="menu-item" onclick="addToCart('กากหมู', 15)"><b>กากหมู</b><span>15.-</span></div>
+        <div class="menu-item" onclick="addDiscount()"><b>ใส่ส่วนลด</b><span>ระบุเอง</span></div>
     </div>
 
-    <div class="order-summary" id="order-list">
-        <div style="color:#999; text-align:center; margin-top:20px;">ยังไม่มีรายการสินค้า</div>
+    <div class="cart-section" id="cart-list">
+        <div style="text-align:center; color:#999; margin-top:30px;">ยังไม่มีรายการสินค้า</div>
     </div>
 
-    <div class="payment-section">
-        <div class="display-box">
-            <span class="total-text">รวมสุทธิ: <span id="total-amount">0</span>.-</span>
-            <div>รับเงิน: <span class="cash-input-area" id="cash-display">0</span></div>
+    <div class="payment-area">
+        <div class="total-display">
+            <span class="total-label">รวมสุทธิ:</span>
+            <span class="total-val"><span id="total-text">0</span>.-</span>
         </div>
-        <div class="display-box" style="margin-bottom:0">
-            <span style="color:#28a745; font-weight:bold;">เงินทอน: <span id="change-amount">0</span>.-</span>
+        <div class="cash-display-row">
+            <span>รับเงิน:</span>
+            <span class="cash-amount" id="cash-text">0</span>
+        </div>
+        <div class="cash-display-row" style="color:#28a745; margin-bottom:15px;">
+            <span>เงินทอน:</span>
+            <span id="change-text">0</span>
         </div>
 
         <div class="numpad">
@@ -90,130 +176,137 @@
             <button class="num-btn btn-clear" onclick="pressNum('C')">C</button>
             <button class="num-btn" onclick="pressNum('0')">0</button>
             <button class="num-btn" onclick="pressNum('00')">00</button>
-            <button class="btn-confirm" onclick="finalizeOrder()">พิมพ์ใบเสร็จ & รันคิว</button>
+            <button class="btn-print" onclick="printReceipt()">พิมพ์ใบเสร็จ & รันคิว</button>
         </div>
-        <center><button onclick="resetEverything()" style="background:none; border:none; color:#ccc; font-size:10px; margin-top:10px; text-decoration:underline;">เริ่มวันใหม่ / ล้างคิว</button></center>
+        <center>
+            <button onclick="resetDaily()" style="margin-top:15px; background:none; border:none; color:#ccc; text-decoration:underline; font-size:11px;">เริ่มวันใหม่ (ล้างคิวเป็น 001)</button>
+        </center>
     </div>
 </div>
 
-<div id="receipt-section">
-    <center>
-        <strong>*** ใบเสร็จรับเงิน ***</strong><br>
-        <span style="font-size:16px; font-weight:bold;">คิว: <span id="r-q"></span></span><br>
-        <span id="r-time"></span>
-    </center>
-    <div style="border-top:1px dashed #000; margin:5px 0;"></div>
-    <div id="r-items"></div>
-    <div style="border-top:1px dashed #000; margin:5px 0;"></div>
-    <div style="display:flex; justify-content:space-between; font-weight:bold;">
-        <span>รวมสุทธิ</span>
-        <span id="r-total"></span>
+<div id="receipt-print">
+    <div class="r-center">
+        <strong style="font-size:16px;">ร้านหมี่ไก่ฉีก</strong><br>
+        <span id="r-date" style="font-size:10px;"></span>
+        <div class="r-q-box">
+            <span style="font-size:10px;">QUEUE</span><br>
+            <span id="r-q-num" style="font-size:32px; font-weight:bold;">001</span>
+        </div>
     </div>
-    <div style="display:flex; justify-content:space-between;">
-        <span>รับเงิน</span>
-        <span id="r-cash"></span>
+    <div class="r-line"></div>
+    <div id="r-items-list"></div>
+    <div class="r-line"></div>
+    <div class="r-flex" style="font-weight:bold; font-size:15px;">
+        <span>TOTAL</span>
+        <span id="r-total">0.-</span>
     </div>
-    <div style="display:flex; justify-content:space-between;">
-        <span>เงินทอน</span>
-        <span id="r-change"></span>
+    <div class="r-flex">
+        <span>CASH</span>
+        <span id="r-cash">0</span>
     </div>
-    <center style="margin-top:10px;">ขอบคุณที่อุดหนุนครับ!</center>
+    <div class="r-flex">
+        <span>CHANGE</span>
+        <span id="r-change">0</span>
+    </div>
+    <div class="r-line"></div>
+    <div class="r-center" style="font-size:10px;">ขอบคุณที่อุดหนุนครับ</div>
 </div>
 
 <script>
     let cart = [];
-    let cashInput = "0";
-    let q = parseInt(localStorage.getItem('pos_q_v3')) || 1;
-    document.getElementById('q-val').innerText = q.toString().padStart(3, '0');
+    let cashTyped = "0";
+    let queue = parseInt(localStorage.getItem('my_pos_q')) || 1;
+    
+    document.getElementById('q-text').innerText = queue.toString().padStart(3, '0');
 
-    function addItem(name, price, isDiscount = false) {
-        if(isDiscount) {
-            let disc = prompt("ระบุจำนวนส่วนลด (บาท):", "0");
-            if(disc && !isNaN(disc)) {
-                cart.push({ name: "ส่วนลด", price: -Math.abs(parseFloat(disc)) });
-            }
-        } else {
-            cart.push({ name: name, price: price });
-        }
-        renderOrder();
+    function addToCart(name, price) {
+        cart.push({ name, price });
+        renderCart();
     }
 
-    function renderOrder() {
-        let listHtml = "";
+    function addDiscount() {
+        let disc = prompt("ระบุยอดส่วนลด (บาท):", "0");
+        if (disc && !isNaN(disc)) {
+            cart.push({ name: "ส่วนลด", price: -Math.abs(parseFloat(disc)) });
+            renderCart();
+        }
+    }
+
+    function renderCart() {
+        let html = "";
         let total = 0;
         cart.forEach((item, index) => {
-            listHtml += `<div class="order-row">
+            html += `<div class="cart-row">
                 <span>${item.name}</span>
-                <span>${item.price.toLocaleString()}.- <small onclick="removeItem(${index})" style="color:red; margin-left:10px;">[x]</small></span>
+                <span>${item.price.toLocaleString()}.- <b class="remove-btn" onclick="removeFromCart(${index})">×</b></span>
             </div>`;
             total += item.price;
         });
-        document.getElementById('order-list').innerHTML = cart.length ? listHtml : '<div style="color:#999; text-align:center; margin-top:20px;">ยังไม่มีรายการสินค้า</div>';
-        document.getElementById('total-amount').innerText = total.toLocaleString();
+        document.getElementById('cart-list').innerHTML = cart.length ? html : '<div style="text-align:center; color:#999; margin-top:30px;">ยังไม่มีรายการสินค้า</div>';
+        document.getElementById('total-text').innerText = total.toLocaleString();
         updateChange();
     }
 
-    function removeItem(index) {
+    function removeFromCart(index) {
         cart.splice(index, 1);
-        renderOrder();
+        renderCart();
     }
 
-    function pressNum(num) {
-        if(num === 'C') {
-            cashInput = "0";
-        } else {
-            if(cashInput === "0") cashInput = num;
-            else cashInput += num;
+    function pressNum(n) {
+        if (n === 'C') cashTyped = "0";
+        else {
+            if (cashTyped === "0") cashTyped = n;
+            else cashTyped += n;
         }
-        document.getElementById('cash-display').innerText = parseInt(cashInput).toLocaleString();
+        document.getElementById('cash-text').innerText = parseInt(cashTyped).toLocaleString();
         updateChange();
     }
 
     function updateChange() {
-        let total = cart.reduce((sum, item) => sum + item.price, 0);
-        let cash = parseInt(cashInput);
+        let total = cart.reduce((s, i) => s + i.price, 0);
+        let cash = parseInt(cashTyped);
         let change = cash - total;
-        document.getElementById('change-amount').innerText = (change > 0) ? change.toLocaleString() : "0";
+        document.getElementById('change-text').innerText = (change > 0) ? change.toLocaleString() : "0";
     }
 
-    function finalizeOrder() {
-        let total = cart.reduce((sum, item) => sum + item.price, 0);
-        let cash = parseInt(cashInput);
+    function printReceipt() {
+        let total = cart.reduce((s, i) => s + i.price, 0);
+        let cash = parseInt(cashTyped);
         
-        if(cart.length === 0) return alert("กรุณาเลือกรายการอาหาร!");
-        if(cash < total) return alert("ยอดรับเงินไม่พอ!");
+        if (cart.length === 0) return alert("กรุณาเลือกรายการ!");
+        if (cash < total) return alert("ยอดรับเงินไม่พอ!");
 
-        // เตรียมใบเสร็จ
-        document.getElementById('r-q').innerText = q.toString().padStart(3, '0');
-        document.getElementById('r-time').innerText = new Date().toLocaleString('th-TH');
-        document.getElementById('r-total').innerText = total.toLocaleString();
+        // Set Receipt Data
+        document.getElementById('r-q-num').innerText = queue.toString().padStart(3, '0');
+        document.getElementById('r-date').innerText = new Date().toLocaleString('th-TH');
+        document.getElementById('r-total').innerText = total.toLocaleString() + ".-";
         document.getElementById('r-cash').innerText = cash.toLocaleString();
         document.getElementById('r-change').innerText = (cash - total).toLocaleString();
-        
+
         let itemHtml = "";
         cart.forEach(item => {
-            itemHtml += `<div style="display:flex; justify-content:space-between;"><span>${item.name}</span><span>${item.price}</span></div>`;
+            itemHtml += `<div class="r-flex"><span>${item.name}</span><span>${item.price.toLocaleString()}</span></div>`;
         });
-        document.getElementById('r-items').innerHTML = itemHtml;
+        document.getElementById('r-items-list').innerHTML = itemHtml;
 
         window.print();
 
-        // อัปเดตคิว
-        q++;
-        localStorage.setItem('pos_q_v3', q);
-        document.getElementById('q-val').innerText = q.toString().padStart(3, '0');
+        // Step up Queue
+        queue++;
+        localStorage.setItem('my_pos_q', queue);
+        document.getElementById('q-text').innerText = queue.toString().padStart(3, '0');
 
-        // รีเซ็ตหน้าจอ
+        // Reset App
         cart = [];
-        cashInput = "0";
-        document.getElementById('cash-display').innerText = "0";
-        renderOrder();
+        cashTyped = "0";
+        document.getElementById('cash-text').innerText = "0";
+        renderCart();
     }
 
-    function resetEverything() {
-        if(confirm("ต้องการล้างคิวเริ่มใหม่ 001?")) {
-            q = 1;
-            localStorage.setItem('pos_q_v3', q);
+    function resetDaily() {
+        if(confirm("ต้องการรีเซ็ตคิวกลับเป็น 001?")) {
+            queue = 1;
+            localStorage.setItem('my_pos_q', queue);
             location.reload();
         }
     }
