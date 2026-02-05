@@ -2,174 +2,250 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS 58mm - Chicken Noodle Full Opt</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile POS - Chicken Noodle</title>
     <style>
-        body { font-family: 'Tahoma', sans-serif; background-color: #f0f4f8; padding: 15px; display: flex; justify-content: center; }
-        .pos-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
-        .input-row { margin-bottom: 12px; }
-        label { display: block; font-size: 14px; color: #666; margin-bottom: 4px; }
-        input { width: 100%; padding: 10px; box-sizing: border-box; border: 2px solid #edf2f7; border-radius: 8px; font-size: 18px; font-weight: bold; }
-        input:focus { border-color: #4299e1; outline: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        .pos-container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 50px;
+        }
         
-        .change-box { background: #ebf8ff; padding: 10px; border-radius: 8px; text-align: center; margin-top: 10px; }
-        .change-label { color: #2b6cb0; font-size: 14px; }
-        .change-amount { font-size: 28px; font-weight: bold; color: #2c5282; }
+        /* ส่วนหัวและคิว */
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h2 { margin: 0; color: #333; font-size: 22px; }
+        .q-badge {
+            background: #ff4757;
+            color: white;
+            display: inline-block;
+            padding: 5px 20px;
+            border-radius: 50px;
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3);
+        }
 
-        .btn-print { width: 100%; padding: 16px; background: #38a169; color: white; border: none; border-radius: 10px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .btn-print:active { background: #2f855a; transform: translateY(2px); }
-        .q-display { text-align: center; font-size: 45px; font-weight: bold; color: #e53e3e; margin: 5px 0; }
+        /* ส่วนกรอกข้อมูล */
+        .input-group { margin-bottom: 18px; }
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: #57606f;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .input-group input {
+            width: 100%;
+            height: 55px; /* สูงขึ้นเพื่อให้นิ้วกดง่าย */
+            border: 2px solid #f1f2f6;
+            border-radius: 12px;
+            padding: 0 15px;
+            font-size: 20px;
+            font-weight: bold;
+            background: #fdfdfe;
+            transition: all 0.2s;
+        }
+        .input-group input:focus {
+            border-color: #5352ed;
+            background: #fff;
+            outline: none;
+        }
+
+        /* แผงแสดงผลลัพธ์ */
+        .summary-card {
+            background: #2f3542;
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .summary-row:last-child { margin-bottom: 0; border-top: 1px solid #57606f; padding-top: 10px; }
+        .total-label { font-size: 16px; opacity: 0.8; }
+        .total-val { font-size: 28px; font-weight: bold; color: #70a1ff; }
+        .change-val { font-size: 24px; font-weight: bold; color: #7bed9f; }
+
+        /* ปุ่มกด */
+        .btn-main {
+            width: 100%;
+            height: 65px;
+            background: #1e90ff;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            box-shadow: 0 6px 15px rgba(30, 144, 255, 0.3);
+            cursor: pointer;
+        }
+        .btn-main:active { transform: scale(0.98); background: #3742fa; }
 
         /* สไตล์ใบเสร็จ 58mm */
         #receipt-section { 
             display: none; 
             width: 48mm; 
             font-family: 'Courier New', monospace; 
-            font-size: 12px;
-            color: #000;
+            font-size: 11px;
+            padding: 5px;
         }
-        .text-center { text-align: center; }
-        .line { border-top: 1px dotted #000; margin: 4px 0; }
-        .big-q { font-size: 26px; font-weight: bold; border: 2px solid #000; padding: 4px 12px; margin: 5px 0; display: inline-block; }
-        .flex { display: flex; justify-content: space-between; margin: 2px 0; }
+        .line { border-top: 1px dashed #000; margin: 5px 0; }
 
         @media print {
-            @page { margin: 0; }
-            body { margin: 0; padding: 0; }
-            .pos-card { display: none; }
-            #receipt-section { display: block; }
+            body * { visibility: hidden; }
+            #receipt-section, #receipt-section * { visibility: visible; }
+            #receipt-section { position: absolute; left: 0; top: 0; display: block; }
         }
     </style>
 </head>
 <body>
 
-<div class="pos-card">
-    <h3 style="text-align:center; margin:0; color:#d32f2f;">🍜 POS หมี่ไก่ฉีก</h3>
-    <div class="q-display"><span id="q-next">001</span></div>
-    
-    <div class="input-row">
+<div class="pos-container">
+    <div class="header">
+        <h2>🍜 หมี่ไก่ฉีก POS</h2>
+        <div class="q-badge" id="q-next">001</div>
+    </div>
+
+    <div class="input-group">
         <label>จำนวน (ชุดละ 50.-)</label>
-        <input type="number" id="qty" value="1" min="1" oninput="calculateAll()">
+        <input type="number" id="qty" value="1" inputmode="numeric" oninput="calculate()">
     </div>
-    <div class="input-row">
+
+    <div class="input-group">
         <label>ส่วนลด (บาท)</label>
-        <input type="number" id="discount" value="0" min="0" oninput="calculateAll()">
-    </div>
-    <div class="input-row">
-        <label style="color:#2d3748; font-weight:bold;">รับเงินมา (บาท)</label>
-        <input type="number" id="cash-received" placeholder="0" oninput="calculateAll()" style="background:#fffaf0; border-color:#fbd38d;">
+        <input type="number" id="discount" value="0" inputmode="numeric" oninput="calculate()">
     </div>
 
-    <div class="change-box">
-        <div class="change-label">เงินทอน</div>
-        <div class="change-amount"><span id="change-display">0</span>.-</div>
+    <div class="input-group">
+        <label>รับเงินมา</label>
+        <input type="number" id="cash-in" placeholder="ใส่ยอดเงิน..." inputmode="numeric" oninput="calculate()">
     </div>
 
-    <h3 style="text-align:center; margin: 15px 0 5px 0;">ยอดสุทธิ: <span id="total-text" style="color:#e53e3e;">50</span>.-</h3>
+    <div class="summary-card">
+        <div class="summary-row">
+            <span class="total-label">ยอดสุทธิ:</span>
+            <span class="total-val"><span id="total-disp">50</span>.-</span>
+        </div>
+        <div class="summary-row">
+            <span class="total-label">เงินทอน:</span>
+            <span class="change-val"><span id="change-disp">0</span>.-</span>
+        </div>
+    </div>
+
+    <button class="btn-main" onclick="handlePrint()">พิมพ์ใบเสร็จ & รันคิว</button>
     
-    <button class="btn-print" onclick="processOrder()">พิมพ์ใบเสร็จ & รันคิว</button>
-    <p style="text-align:center;"><button onclick="resetQ()" style="background:none; border:none; color:#a0aec0; text-decoration:underline; cursor:pointer; font-size:12px;">Reset Queue 001</button></p>
+    <div style="text-align:center; margin-top:20px;">
+        <button onclick="resetQ()" style="background:none; border:none; color:#ced4da; font-size:12px; text-decoration:underline;">เริ่มวันใหม่ (Reset คิว)</button>
+    </div>
 </div>
 
 <div id="receipt-section">
-    <div class="text-center">
-        <strong>ใบเสร็จรับเงิน</strong><br>
-        <span>ร้านหมี่ไก่ฉีกแสนอร่อย</span><br>
-        <div class="big-q" id="r-q">001</div><br>
-        <span id="r-time" style="font-size: 10px;"></span>
-    </div>
-    
+    <center>
+        <strong>*** ร้านหมี่ไก่ฉีก ***</strong><br>
+        <span style="font-size: 20px; font-weight: bold;">Q: <span id="r-q"></span></span><br>
+        <span id="r-time" style="font-size: 9px;"></span>
+    </center>
     <div class="line"></div>
-    <div class="flex">
-        <span>หมี่ไก่ฉีก x <span id="r-qty">1</span></span>
-        <span id="r-subtotal">50</span>
+    <div style="display:flex; justify-content:space-between;">
+        <span>หมี่ไก่ฉีก x <span id="r-qty"></span></span>
+        <span id="r-sub"></span>
     </div>
-    <div class="flex">
+    <div style="display:flex; justify-content:space-between;">
         <span>ส่วนลด</span>
-        <span id="r-discount">-0</span>
+        <span id="r-disc"></span>
     </div>
     <div class="line"></div>
-    
-    <div class="flex" style="font-weight:bold;">
+    <div style="display:flex; justify-content:space-between; font-weight:bold;">
         <span>รวมสุทธิ</span>
-        <span id="r-total">50</span>
+        <span id="r-total"></span>
     </div>
-    <div class="flex">
+    <div style="display:flex; justify-content:space-between;">
         <span>รับเงิน</span>
-        <span id="r-cash">0</span>
+        <span id="r-cash"></span>
     </div>
-    <div class="flex">
+    <div style="display:flex; justify-content:space-between;">
         <span>เงินทอน</span>
-        <span id="r-change">0</span>
+        <span id="r-change"></span>
     </div>
     <div class="line"></div>
-    
-    <div class="text-center" style="font-size: 10px; margin-top: 5px;">
-        ขอบคุณที่อุดหนุนครับ
-    </div>
+    <center style="font-size: 9px; margin-top: 5px;">โปรดรอเรียกตามหมายเลขคิว</center>
 </div>
 
 <script>
-    let q = parseInt(localStorage.getItem('q_val')) || 1;
+    let q = parseInt(localStorage.getItem('pos_q')) || 1;
     document.getElementById('q-next').innerText = q.toString().padStart(3, '0');
 
-    function calculateAll() {
+    function calculate() {
         let qty = parseFloat(document.getElementById('qty').value) || 0;
         let disc = parseFloat(document.getElementById('discount').value) || 0;
-        let cash = parseFloat(document.getElementById('cash-received').value) || 0;
-        
+        let cash = parseFloat(document.getElementById('cash-in').value) || 0;
+
         let total = (qty * 50) - disc;
-        if (total < 0) total = 0;
+        if(total < 0) total = 0;
         
         let change = cash - total;
-        if (change < 0 || isNaN(change)) change = 0;
+        if(change < 0 || isNaN(change)) change = 0;
 
-        document.getElementById('total-text').innerText = total.toLocaleString();
-        document.getElementById('change-display').innerText = change.toLocaleString();
-        
+        document.getElementById('total-disp').innerText = total.toLocaleString();
+        document.getElementById('change-disp').innerText = change.toLocaleString();
+
         return { qty, disc, total, cash, change };
     }
 
-    function processOrder() {
-        let data = calculateAll();
-        
-        // ตรวจสอบว่ารับเงินพอไหม
-        if (parseFloat(document.getElementById('cash-received').value) < data.total) {
-            alert("ยอดรับเงินไม่พอครับ!");
+    function handlePrint() {
+        let data = calculate();
+        if(document.getElementById('cash-in').value !== "" && data.cash < data.total) {
+            alert("ยอดรับเงินไม่พอ!");
             return;
         }
 
-        let time = new Date().toLocaleString('th-TH', { hour12: false });
-
-        // ใส่ข้อมูลลงใบเสร็จ
+        // จัดเตรียมข้อมูลใบเสร็จ
         document.getElementById('r-q').innerText = q.toString().padStart(3, '0');
-        document.getElementById('r-time').innerText = time;
+        document.getElementById('r-time').innerText = new Date().toLocaleString('th-TH');
         document.getElementById('r-qty').innerText = data.qty;
-        document.getElementById('r-subtotal').innerText = (data.qty * 50).toLocaleString();
-        document.getElementById('r-discount').innerText = "-" + data.disc.toLocaleString();
+        document.getElementById('r-sub').innerText = (data.qty * 50).toLocaleString();
+        document.getElementById('r-disc').innerText = "-" + data.disc.toLocaleString();
         document.getElementById('r-total').innerText = data.total.toLocaleString();
         document.getElementById('r-cash').innerText = data.cash.toLocaleString();
         document.getElementById('r-change').innerText = data.change.toLocaleString();
 
-        // พิมพ์
         window.print();
 
-        // รันคิวต่อ
+        // อัปเดตคิว
         q++;
-        localStorage.setItem('q_val', q);
+        localStorage.setItem('pos_q', q);
         document.getElementById('q-next').innerText = q.toString().padStart(3, '0');
-        
-        // ล้างค่าสำหรับคนถัดไป
+
+        // รีเซ็ตค่าหน้าจอ
         document.getElementById('qty').value = 1;
         document.getElementById('discount').value = 0;
-        document.getElementById('cash-received').value = "";
-        calculateAll();
+        document.getElementById('cash-in').value = "";
+        calculate();
     }
 
     function resetQ() {
-        if(confirm("ต้องการเริ่มคิวใหม่ที่ 001?")) {
+        if(confirm("ต้องการรีเซ็ตคิวเป็น 001?")) {
             q = 1;
-            localStorage.setItem('q_val', q);
+            localStorage.setItem('pos_q', q);
             document.getElementById('q-next').innerText = "001";
         }
     }
