@@ -1,0 +1,460 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Sarabun', sans-serif;
+}
+
+body {
+  background: #f4f6f9;
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+input[type="text"], input[type="number"], input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px 15px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  background: #3498db;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2980b9;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #ecf0f1;
+}
+
+img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.cart {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.history-actions {
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+  th { display: none; }
+  tr { margin-bottom: 10px; }
+  td {
+    position: relative;
+    padding-left: 50%;
+    border: none;
+  }
+  td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    width: 45%;
+    font-weight: bold;
+  }
+}
+
+
+
+
+
+
+
+/*--------------------------------------------------------------*/
+
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Sarabun', sans-serif; }
+        .receipt-print { 
+            font-family: 'Courier New', monospace; 
+            font-size: 12px; 
+            line-height: 1.2;
+            width: 300px;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            .receipt-print, .receipt-print * { visibility: visible; }
+            .receipt-print { position: absolute; left: 0; top: 0; }
+        }
+        .connection-status {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .online { background: #10b981; color: white; }
+        .offline { background: #6b7280; color: white; }
+        
+        /* Custom Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+        .modal-message {
+            color: #6b7280;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .modal-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .modal-button:hover {
+            background: #2563eb;
+        }
+        .modal-button.success {
+            background: #10b981;
+        }
+        .modal-button.success:hover {
+            background: #059669;
+        }
+        .modal-button.error {
+            background: #ef4444;
+        }
+        .modal-button.error:hover {
+            background: #dc2626;
+        }
+        .modal-button.warning {
+            background: #f59e0b;
+        }
+        .modal-button.warning:hover {
+            background: #d97706;
+        }
+        
+        /* Loading animation */
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+
+
+
+        body {
+      font-family: 'Sarabun', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: #333;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* ค้นหา */
+    #searchInput {
+      width: 100%;
+      max-width: 400px;
+      padding: 12px 16px;
+      margin: 20px auto 20px;
+      border: 2px solid #3498db;
+      border-radius: 12px;
+      font-size: 16px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+
+    #searchInput:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 6px 12px rgba(52, 152, 219, 0.2);
+    }
+
+    /* ตาราง */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      margin: 20px 0;
+      font-size: 16px;
+    }
+
+    th {
+      background: linear-gradient(to right, #3498db, #2980b9);
+      color: white;
+      padding: 14px;
+      text-align: center;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    tr:hover {
+      background-color: #f0f8ff;
+      transform: translateY(-2px);
+      transition: all 0.2s ease;
+    }
+
+    img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .quantity-input {
+      width: 60px;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .add-btn {
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .add-btn:hover {
+      background-color: #219653;
+    }
+
+    /* ตะกร้า */
+    .cart {
+      margin-top: 40px;
+      background-color: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+      margin-left: auto;
+    }
+
+    .cart h3 {
+      font-size: 1.5rem;
+      color: #2c3e50;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 8px;
+    }
+
+    #cartItems {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      padding: 8px;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 14px;
+      border-bottom: 1px dashed #ddd;
+    }
+
+    .cart-item:last-child {
+      border-bottom: none;
+    }
+
+    .cart p {
+      font-size: 16px;
+      margin: 10px 0;
+    }
+
+    .cart button {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 100%;
+      font-weight: bold;
+      transition: background 0.3s;
+      margin-top: 10px;
+    }
+
+    .cart button:hover {
+      background-color: #c0392b;
+      transform: scale(1.03);
+    }
+
+    .refresh-btn {
+      background-color: #9b59b6;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .refresh-btn:hover {
+      background-color: #8e44ad;
+      transform: scale(1.05);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      table, .cart {
+        font-size: 14px;
+      }
+
+      .cart {
+        max-width: 100%;
+      }
+    }
