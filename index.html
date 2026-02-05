@@ -3,117 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบออกใบเสร็จ 58mm</title>
+    <title>Chicken Noodle POS</title>
     <style>
-        :root { --primary: #2563eb; --secondary: #64748b; --success: #22c55e; }
-        body { font-family: 'Tahoma', sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; width: 100%; max-width: 400px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary); margin-bottom: 20px; }
-        
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 14px; margin-bottom: 5px; color: var(--secondary); }
-        input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        
-        .item-list { border-top: 2px dashed #e2e8f0; margin-top: 20px; padding-top: 20px; }
-        .total-display { font-size: 20px; font-weight: bold; text-align: right; color: #1e293b; margin: 15px 0; }
-        
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-add { background: #e2e8f0; color: #1e293b; margin-bottom: 10px; }
-        .btn-print { background: var(--success); color: white; }
-        button:active { transform: scale(0.98); }
-
-        .receipt-preview { background: #fff; border: 1px solid #ddd; padding: 10px; font-family: monospace; font-size: 12px; margin-top: 20px; display: none; }
+        body { font-family: 'Tahoma', sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; }
+        h2 { text-align: center; color: #d32f2f; }
+        .item-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        label { font-weight: bold; }
+        input[type="number"] { width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        .calculation-area { line-height: 1.8; margin-bottom: 20px; }
+        .btn-group { display: flex; gap: 10px; }
+        button { flex: 1; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-calc { background-color: #4caf50; color: white; }
+        .btn-print { background-color: #2196f3; color: white; }
+        #receipt { margin-top: 20px; padding: 15px; border: 1px dashed #999; display: none; background: #fffdf0; }
+        @media print { body * { visibility: hidden; } #receipt, #receipt * { visibility: visible; } #receipt { position: absolute; left: 0; top: 0; width: 100%; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>ใบเสร็จรับเงิน</h2>
+    <h2>🍜 ระบบขายหมี่ไก่ฉีก</h2>
     
-    <div class="form-group">
-        <label>ชื่อร้าน</label>
-        <input type="text" id="shopName" value="ร้านของฉัน">
+    <div class="item-info">
+        <span>หมี่ไก่ฉีก (ชุดละ 50.-)</span>
+        <input type="number" id="qty" value="1" min="1">
     </div>
 
-    <div id="itemsContainer">
-        <div class="form-group">
-            <label>รายการสินค้า / ราคา</label>
-            <div style="display: flex; gap: 5px;">
-                <input type="text" class="item-name" placeholder="ชื่อสินค้า" style="flex: 2;">
-                <input type="number" class="item-price" placeholder="ราคา" style="flex: 1;" oninput="calculateTotal()">
-            </div>
-        </div>
+    <div class="calculation-area">
+        <label>ส่วนลด (บาท):</label>
+        <input type="number" id="discount" value="0" min="0" style="width: 80%; margin-top: 5px;"><br>
+        <hr>
+        <strong>รวมทั้งสิ้น: <span id="total-display">50</span> บาท</strong>
     </div>
 
-    <button class="btn-add" onclick="addItem()">+ เพิ่มรายการ</button>
-
-    <div class="total-display">
-        รวมทั้งสิ้น: <span id="totalAmount">0.00</span> ฿
+    <div class="btn-group">
+        <button class="btn-calc" onclick="calculate()">คำนวณเงิน</button>
+        <button class="btn-print" onclick="printReceipt()">พิมพ์ใบเสร็จ</button>
     </div>
 
-    <button class="btn-print" onclick="preparePrint()">🖨️ พิมพ์ใบเสร็จ</button>
+    <div id="receipt">
+        <center>
+            <strong>*** ใบเสร็จรับเงิน ***</strong><br>
+            ร้านหมี่ไก่ฉีกแสนอร่อย
+        </center>
+        <p id="receipt-date" style="font-size: 12px;"></p>
+        <hr>
+        <div id="receipt-details"></div>
+        <hr>
+        <center>ขอบคุณที่อุดหนุนครับ!</center>
+    </div>
 </div>
 
 <script>
-    // เพิ่มช่องกรอกสินค้าใหม่
-    function addItem() {
-        const container = document.getElementById('itemsContainer');
-        const div = document.createElement('div');
-        div.className = 'form-group';
-        div.innerHTML = `
-            <div style="display: flex; gap: 5px; margin-top: 5px;">
-                <input type="text" class="item-name" placeholder="ชื่อสินค้า" style="flex: 2;">
-                <input type="number" class="item-price" placeholder="ราคา" style="flex: 1;" oninput="calculateTotal()">
-            </div>
+    const pricePerUnit = 50;
+
+    function calculate() {
+        const qty = document.getElementById('qty').value;
+        const discount = document.getElementById('discount').value;
+        const total = (qty * pricePerUnit) - discount;
+        
+        document.getElementById('total-display').innerText = total > 0 ? total : 0;
+        return { qty, discount, total };
+    }
+
+    function printReceipt() {
+        const data = calculate();
+        const date = new Date().toLocaleString('th-TH');
+        
+        document.getElementById('receipt-date').innerText = "วันที่: " + date;
+        document.getElementById('receipt-details').innerHTML = `
+            หมี่ไก่ฉีก x ${data.qty} : ${data.qty * pricePerUnit} บาท<br>
+            ส่วนลด: ${data.discount} บาท<br>
+            <strong>ยอดสุทธิ: ${data.total > 0 ? data.total : 0} บาท</strong>
         `;
-        container.appendChild(div);
-    }
-
-    // คำนวณราคารวม
-    function calculateTotal() {
-        let total = 0;
-        const prices = document.querySelectorAll('.item-price');
-        prices.forEach(p => {
-            total += parseFloat(p.value) || 0;
-        });
-        document.getElementById('totalAmount').innerText = total.toFixed(2);
-    }
-
-    // ฟังก์ชันสั่งพิมพ์ผ่าน RawBT
-    function preparePrint() {
-        const shopName = document.getElementById('shopName').value;
-        const names = document.querySelectorAll('.item-name');
-        const prices = document.querySelectorAll('.item-price');
-        const total = document.getElementById('totalAmount').innerText;
         
-        let now = new Date();
-        let dateStr = now.toLocaleDateString() + " " + now.toLocaleTimeString();
-
-        // จัดรูปแบบสำหรับเครื่องพิมพ์ 58mm (ประมาณ 32 ตัวอักษร)
-        let receiptText = "";
-        receiptText += `\x1B\x61\x01${shopName}\n`; // กึ่งกลาง
-        receiptText += `--------------------------------\n`;
-        receiptText += `Date: ${dateStr}\n`;
-        receiptText += `--------------------------------\n`;
-        
-        names.forEach((nameInput, index) => {
-            let n = nameInput.value || "Item";
-            let p = parseFloat(prices[index].value || 0).toFixed(2);
-            // พิมพ์ชื่อและราคากันคนละฝั่ง
-            let spaceCount = 32 - (n.length + p.length);
-            let spaces = " ".repeat(Math.max(1, spaceCount));
-            receiptText += `${n}${spaces}${p}\n`;
-        });
-
-        receiptText += `--------------------------------\n`;
-        receiptText += `\x1B\x61\x02TOTAL: ${total} THB\n`; // ชิดขวา
-        receiptText += `\x1B\x61\x01\nTHANK YOU\n\n\n\n`;
-
-        // ส่งเข้า Intent ของ RawBT
-        const rawBTUrl = "intent:#Intent;scheme=rawbt;package=ru.a402nd.rawbtprinter;S.text=" + 
-                         encodeURIComponent(receiptText) + ";end;";
-
-        window.location.href = rawBTUrl;
+        document.getElementById('receipt').style.display = 'block';
+        setTimeout(() => {
+            window.print();
+        }, 500);
     }
 </script>
 
