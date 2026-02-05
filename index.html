@@ -3,112 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobile POS - Chicken Noodle</title>
+    <title>Professional POS - Chicken Noodle</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-        }
-        .pos-container {
-            width: 100%;
-            max-width: 500px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            padding: 20px;
-            margin-bottom: 50px;
-        }
+        body { font-family: 'Tahoma', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; }
+        .pos-app { width: 100%; max-width: 500px; background: #fff; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        /* ส่วนหัวและคิว */
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h2 { margin: 0; color: #333; font-size: 22px; }
-        .q-badge {
-            background: #ff4757;
-            color: white;
-            display: inline-block;
-            padding: 5px 20px;
-            border-radius: 50px;
-            font-size: 32px;
-            font-weight: bold;
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3);
-        }
+        /* Header */
+        .header { background: #d32f2f; color: white; padding: 15px; text-align: center; position: relative; }
+        .q-display { font-size: 24px; font-weight: bold; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 5px 15px; margin-top: 5px; display: inline-block; }
 
-        /* ส่วนกรอกข้อมูล */
-        .input-group { margin-bottom: 18px; }
-        .input-group label {
-            display: block;
-            font-weight: 600;
-            color: #57606f;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        .input-group input {
-            width: 100%;
-            height: 55px; /* สูงขึ้นเพื่อให้นิ้วกดง่าย */
-            border: 2px solid #f1f2f6;
-            border-radius: 12px;
-            padding: 0 15px;
-            font-size: 20px;
-            font-weight: bold;
-            background: #fdfdfe;
-            transition: all 0.2s;
-        }
-        .input-group input:focus {
-            border-color: #5352ed;
-            background: #fff;
-            outline: none;
-        }
+        /* Menu Section */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; background: #fff; border-bottom: 2px solid #eee; }
+        .menu-item { background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .menu-item:active { background: #e2e6ea; transform: scale(0.95); }
+        .menu-item b { display: block; font-size: 16px; color: #333; }
+        .menu-item span { color: #d32f2f; font-weight: bold; }
 
-        /* แผงแสดงผลลัพธ์ */
-        .summary-card {
-            background: #2f3542;
-            color: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 25px;
-        }
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .summary-row:last-child { margin-bottom: 0; border-top: 1px solid #57606f; padding-top: 10px; }
-        .total-label { font-size: 16px; opacity: 0.8; }
-        .total-val { font-size: 28px; font-weight: bold; color: #70a1ff; }
-        .change-val { font-size: 24px; font-weight: bold; color: #7bed9f; }
+        /* Order Summary */
+        .order-summary { flex-grow: 1; padding: 15px; overflow-y: auto; background: #fafafa; }
+        .order-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; border-bottom: 1px dashed #ddd; padding-bottom: 5px; }
 
-        /* ปุ่มกด */
-        .btn-main {
-            width: 100%;
-            height: 65px;
-            background: #1e90ff;
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 20px;
-            box-shadow: 0 6px 15px rgba(30, 144, 255, 0.3);
-            cursor: pointer;
-        }
-        .btn-main:active { transform: scale(0.98); background: #3742fa; }
+        /* Payment Section */
+        .payment-section { background: #fff; padding: 15px; border-top: 1px solid #eee; }
+        .display-box { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .total-text { font-size: 22px; font-weight: bold; color: #d32f2f; }
+        .cash-input-area { font-size: 20px; font-weight: bold; color: #007bff; border-bottom: 2px solid #007bff; min-width: 100px; text-align: right; }
 
-        /* สไตล์ใบเสร็จ 58mm */
-        #receipt-section { 
-            display: none; 
-            width: 48mm; 
-            font-family: 'Courier New', monospace; 
-            font-size: 11px;
-            padding: 5px;
-        }
-        .line { border-top: 1px dashed #000; margin: 5px 0; }
+        /* Numpad */
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
+        .num-btn { background: #f1f3f5; border: none; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .num-btn:active { background: #dee2e6; }
+        .btn-clear { background: #ffebee; color: #d32f2f; }
+        .btn-confirm { background: #28a745; color: white; grid-column: span 3; margin-top: 10px; padding: 18px; font-size: 20px; border-radius: 10px; border: none; font-weight: bold; }
+
+        /* Receipt (Hidden) */
+        #receipt-section { display: none; width: 48mm; font-family: monospace; font-size: 11px; }
 
         @media print {
             body * { visibility: hidden; }
@@ -119,61 +49,62 @@
 </head>
 <body>
 
-<div class="pos-container">
+<div class="pos-app">
     <div class="header">
-        <h2>🍜 หมี่ไก่ฉีก POS</h2>
-        <div class="q-badge" id="q-next">001</div>
+        <b>🍜 ร้านหมี่ไก่ฉีก</b><br>
+        <div class="q-display">คิว: <span id="q-val">001</span></div>
     </div>
 
-    <div class="input-group">
-        <label>จำนวน (ชุดละ 50.-)</label>
-        <input type="number" id="qty" value="1" inputmode="numeric" oninput="calculate()">
+    <div class="menu-grid">
+        <div class="menu-item" onclick="addItem('หมี่ไก่ฉีก', 50)"><b>หมี่ไก่ฉีก</b><span>50.-</span></div>
+        <div class="menu-item" onclick="addItem('หมี่หมูสับ', 50)"><b>หมี่หมูสับ</b><span>50.-</span></div>
+        <div class="menu-item" onclick="addItem('เพิ่มเส้นหมี่', 10)"><b>เพิ่มเส้น</b><span>10.-</span></div>
+        <div class="menu-item" onclick="addItem('เพิ่มไก่ฉีก', 10)"><b>เพิ่มไก่</b><span>10.-</span></div>
+        <div class="menu-item" onclick="addItem('นํ้าพริกกากหมู', 15)"><b>กากหมู</b><span>15.-</span></div>
+        <div class="menu-item" onclick="addItem('ส่วนลด', -1, true)"><b>ใส่ส่วนลด</b><span>คีย์ระบุ</span></div>
     </div>
 
-    <div class="input-group">
-        <label>ส่วนลด (บาท)</label>
-        <input type="number" id="discount" value="0" inputmode="numeric" oninput="calculate()">
+    <div class="order-summary" id="order-list">
+        <div style="color:#999; text-align:center; margin-top:20px;">ยังไม่มีรายการสินค้า</div>
     </div>
 
-    <div class="input-group">
-        <label>รับเงินมา</label>
-        <input type="number" id="cash-in" placeholder="ใส่ยอดเงิน..." inputmode="numeric" oninput="calculate()">
-    </div>
-
-    <div class="summary-card">
-        <div class="summary-row">
-            <span class="total-label">ยอดสุทธิ:</span>
-            <span class="total-val"><span id="total-disp">50</span>.-</span>
+    <div class="payment-section">
+        <div class="display-box">
+            <span class="total-text">รวมสุทธิ: <span id="total-amount">0</span>.-</span>
+            <div>รับเงิน: <span class="cash-input-area" id="cash-display">0</span></div>
         </div>
-        <div class="summary-row">
-            <span class="total-label">เงินทอน:</span>
-            <span class="change-val"><span id="change-disp">0</span>.-</span>
+        <div class="display-box" style="margin-bottom:0">
+            <span style="color:#28a745; font-weight:bold;">เงินทอน: <span id="change-amount">0</span>.-</span>
         </div>
-    </div>
 
-    <button class="btn-main" onclick="handlePrint()">พิมพ์ใบเสร็จ & รันคิว</button>
-    
-    <div style="text-align:center; margin-top:20px;">
-        <button onclick="resetQ()" style="background:none; border:none; color:#ced4da; font-size:12px; text-decoration:underline;">เริ่มวันใหม่ (Reset คิว)</button>
+        <div class="numpad">
+            <button class="num-btn" onclick="pressNum('1')">1</button>
+            <button class="num-btn" onclick="pressNum('2')">2</button>
+            <button class="num-btn" onclick="pressNum('3')">3</button>
+            <button class="num-btn" onclick="pressNum('4')">4</button>
+            <button class="num-btn" onclick="pressNum('5')">5</button>
+            <button class="num-btn" onclick="pressNum('6')">6</button>
+            <button class="num-btn" onclick="pressNum('7')">7</button>
+            <button class="num-btn" onclick="pressNum('8')">8</button>
+            <button class="num-btn" onclick="pressNum('9')">9</button>
+            <button class="num-btn btn-clear" onclick="pressNum('C')">C</button>
+            <button class="num-btn" onclick="pressNum('0')">0</button>
+            <button class="num-btn" onclick="pressNum('00')">00</button>
+            <button class="btn-confirm" onclick="finalizeOrder()">พิมพ์ใบเสร็จ & รันคิว</button>
+        </div>
+        <center><button onclick="resetEverything()" style="background:none; border:none; color:#ccc; font-size:10px; margin-top:10px; text-decoration:underline;">เริ่มวันใหม่ / ล้างคิว</button></center>
     </div>
 </div>
 
 <div id="receipt-section">
     <center>
-        <strong>*** ร้านหมี่ไก่ฉีก ***</strong><br>
-        <span style="font-size: 20px; font-weight: bold;">Q: <span id="r-q"></span></span><br>
-        <span id="r-time" style="font-size: 9px;"></span>
+        <strong>*** ใบเสร็จรับเงิน ***</strong><br>
+        <span style="font-size:16px; font-weight:bold;">คิว: <span id="r-q"></span></span><br>
+        <span id="r-time"></span>
     </center>
-    <div class="line"></div>
-    <div style="display:flex; justify-content:space-between;">
-        <span>หมี่ไก่ฉีก x <span id="r-qty"></span></span>
-        <span id="r-sub"></span>
-    </div>
-    <div style="display:flex; justify-content:space-between;">
-        <span>ส่วนลด</span>
-        <span id="r-disc"></span>
-    </div>
-    <div class="line"></div>
+    <div style="border-top:1px dashed #000; margin:5px 0;"></div>
+    <div id="r-items"></div>
+    <div style="border-top:1px dashed #000; margin:5px 0;"></div>
     <div style="display:flex; justify-content:space-between; font-weight:bold;">
         <span>รวมสุทธิ</span>
         <span id="r-total"></span>
@@ -186,67 +117,104 @@
         <span>เงินทอน</span>
         <span id="r-change"></span>
     </div>
-    <div class="line"></div>
-    <center style="font-size: 9px; margin-top: 5px;">โปรดรอเรียกตามหมายเลขคิว</center>
+    <center style="margin-top:10px;">ขอบคุณที่อุดหนุนครับ!</center>
 </div>
 
 <script>
-    let q = parseInt(localStorage.getItem('pos_q')) || 1;
-    document.getElementById('q-next').innerText = q.toString().padStart(3, '0');
+    let cart = [];
+    let cashInput = "0";
+    let q = parseInt(localStorage.getItem('pos_q_v3')) || 1;
+    document.getElementById('q-val').innerText = q.toString().padStart(3, '0');
 
-    function calculate() {
-        let qty = parseFloat(document.getElementById('qty').value) || 0;
-        let disc = parseFloat(document.getElementById('discount').value) || 0;
-        let cash = parseFloat(document.getElementById('cash-in').value) || 0;
-
-        let total = (qty * 50) - disc;
-        if(total < 0) total = 0;
-        
-        let change = cash - total;
-        if(change < 0 || isNaN(change)) change = 0;
-
-        document.getElementById('total-disp').innerText = total.toLocaleString();
-        document.getElementById('change-disp').innerText = change.toLocaleString();
-
-        return { qty, disc, total, cash, change };
+    function addItem(name, price, isDiscount = false) {
+        if(isDiscount) {
+            let disc = prompt("ระบุจำนวนส่วนลด (บาท):", "0");
+            if(disc && !isNaN(disc)) {
+                cart.push({ name: "ส่วนลด", price: -Math.abs(parseFloat(disc)) });
+            }
+        } else {
+            cart.push({ name: name, price: price });
+        }
+        renderOrder();
     }
 
-    function handlePrint() {
-        let data = calculate();
-        if(document.getElementById('cash-in').value !== "" && data.cash < data.total) {
-            alert("ยอดรับเงินไม่พอ!");
-            return;
-        }
+    function renderOrder() {
+        let listHtml = "";
+        let total = 0;
+        cart.forEach((item, index) => {
+            listHtml += `<div class="order-row">
+                <span>${item.name}</span>
+                <span>${item.price.toLocaleString()}.- <small onclick="removeItem(${index})" style="color:red; margin-left:10px;">[x]</small></span>
+            </div>`;
+            total += item.price;
+        });
+        document.getElementById('order-list').innerHTML = cart.length ? listHtml : '<div style="color:#999; text-align:center; margin-top:20px;">ยังไม่มีรายการสินค้า</div>';
+        document.getElementById('total-amount').innerText = total.toLocaleString();
+        updateChange();
+    }
 
-        // จัดเตรียมข้อมูลใบเสร็จ
+    function removeItem(index) {
+        cart.splice(index, 1);
+        renderOrder();
+    }
+
+    function pressNum(num) {
+        if(num === 'C') {
+            cashInput = "0";
+        } else {
+            if(cashInput === "0") cashInput = num;
+            else cashInput += num;
+        }
+        document.getElementById('cash-display').innerText = parseInt(cashInput).toLocaleString();
+        updateChange();
+    }
+
+    function updateChange() {
+        let total = cart.reduce((sum, item) => sum + item.price, 0);
+        let cash = parseInt(cashInput);
+        let change = cash - total;
+        document.getElementById('change-amount').innerText = (change > 0) ? change.toLocaleString() : "0";
+    }
+
+    function finalizeOrder() {
+        let total = cart.reduce((sum, item) => sum + item.price, 0);
+        let cash = parseInt(cashInput);
+        
+        if(cart.length === 0) return alert("กรุณาเลือกรายการอาหาร!");
+        if(cash < total) return alert("ยอดรับเงินไม่พอ!");
+
+        // เตรียมใบเสร็จ
         document.getElementById('r-q').innerText = q.toString().padStart(3, '0');
         document.getElementById('r-time').innerText = new Date().toLocaleString('th-TH');
-        document.getElementById('r-qty').innerText = data.qty;
-        document.getElementById('r-sub').innerText = (data.qty * 50).toLocaleString();
-        document.getElementById('r-disc').innerText = "-" + data.disc.toLocaleString();
-        document.getElementById('r-total').innerText = data.total.toLocaleString();
-        document.getElementById('r-cash').innerText = data.cash.toLocaleString();
-        document.getElementById('r-change').innerText = data.change.toLocaleString();
+        document.getElementById('r-total').innerText = total.toLocaleString();
+        document.getElementById('r-cash').innerText = cash.toLocaleString();
+        document.getElementById('r-change').innerText = (cash - total).toLocaleString();
+        
+        let itemHtml = "";
+        cart.forEach(item => {
+            itemHtml += `<div style="display:flex; justify-content:space-between;"><span>${item.name}</span><span>${item.price}</span></div>`;
+        });
+        document.getElementById('r-items').innerHTML = itemHtml;
 
         window.print();
 
         // อัปเดตคิว
         q++;
-        localStorage.setItem('pos_q', q);
-        document.getElementById('q-next').innerText = q.toString().padStart(3, '0');
+        localStorage.setItem('pos_q_v3', q);
+        document.getElementById('q-val').innerText = q.toString().padStart(3, '0');
 
-        // รีเซ็ตค่าหน้าจอ
-        document.getElementById('qty').value = 1;
-        document.getElementById('discount').value = 0;
-        document.getElementById('cash-in').value = "";
-        calculate();
+        // รีเซ็ตหน้าจอ
+        cart = [];
+        cashInput = "0";
+        document.getElementById('cash-display').innerText = "0";
+        renderOrder();
     }
 
-    function resetQ() {
-        if(confirm("ต้องการรีเซ็ตคิวเป็น 001?")) {
+    function resetEverything() {
+        if(confirm("ต้องการล้างคิวเริ่มใหม่ 001?")) {
             q = 1;
-            localStorage.setItem('pos_q', q);
-            document.getElementById('q-next').innerText = "001";
+            localStorage.setItem('pos_q_v3', q);
+            location.reload();
         }
     }
 </script>
