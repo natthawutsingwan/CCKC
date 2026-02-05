@@ -3,34 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS 58mm - Chicken Noodle</title>
+    <title>POS 58mm - Chicken Noodle Full Opt</title>
     <style>
-        /* สไตล์หน้าจอ POS */
-        body { font-family: 'Tahoma', sans-serif; background-color: #eceff1; padding: 20px; display: flex; justify-content: center; }
-        .pos-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
-        .input-row { margin-bottom: 15px; }
-        input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; font-size: 18px; }
-        .btn-print { width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        .q-display { text-align: center; font-size: 40px; font-weight: bold; color: #1565c0; margin: 10px 0; }
+        body { font-family: 'Tahoma', sans-serif; background-color: #f0f4f8; padding: 15px; display: flex; justify-content: center; }
+        .pos-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
+        .input-row { margin-bottom: 12px; }
+        label { display: block; font-size: 14px; color: #666; margin-bottom: 4px; }
+        input { width: 100%; padding: 10px; box-sizing: border-box; border: 2px solid #edf2f7; border-radius: 8px; font-size: 18px; font-weight: bold; }
+        input:focus { border-color: #4299e1; outline: none; }
+        
+        .change-box { background: #ebf8ff; padding: 10px; border-radius: 8px; text-align: center; margin-top: 10px; }
+        .change-label { color: #2b6cb0; font-size: 14px; }
+        .change-amount { font-size: 28px; font-weight: bold; color: #2c5282; }
 
-        /* สไตล์ใบเสร็จ (สำคัญสำหรับ 58mm) */
+        .btn-print { width: 100%; padding: 16px; background: #38a169; color: white; border: none; border-radius: 10px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-print:active { background: #2f855a; transform: translateY(2px); }
+        .q-display { text-align: center; font-size: 45px; font-weight: bold; color: #e53e3e; margin: 5px 0; }
+
+        /* สไตล์ใบเสร็จ 58mm */
         #receipt-section { 
             display: none; 
-            width: 48mm; /* เว้นระยะจากขอบกระดาษ 58mm */
-            font-family: 'Courier New', Courier, monospace; /* ฟอนต์มาตรฐานใบเสร็จ */
+            width: 48mm; 
+            font-family: 'Courier New', monospace; 
             font-size: 12px;
             color: #000;
-            padding: 0;
-            margin: 0;
         }
         .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .line { border-top: 1px dotted #000; margin: 5px 0; }
-        .big-q { font-size: 24px; font-weight: bold; border: 1px solid #000; display: inline-block; padding: 5px 10px; margin: 5px 0; }
-        .flex { display: flex; justify-content: space-between; }
+        .line { border-top: 1px dotted #000; margin: 4px 0; }
+        .big-q { font-size: 26px; font-weight: bold; border: 2px solid #000; padding: 4px 12px; margin: 5px 0; display: inline-block; }
+        .flex { display: flex; justify-content: space-between; margin: 2px 0; }
 
         @media print {
-            @page { margin: 0; size: auto; }
+            @page { margin: 0; }
             body { margin: 0; padding: 0; }
             .pos-card { display: none; }
             #receipt-section { display: block; }
@@ -40,26 +44,37 @@
 <body>
 
 <div class="pos-card">
-    <h3 style="text-align:center; margin-top:0;">🍜 ขายหมี่ไก่ฉีก</h3>
-    <div class="q-display">คิว: <span id="q-next">001</span></div>
+    <h3 style="text-align:center; margin:0; color:#d32f2f;">🍜 POS หมี่ไก่ฉีก</h3>
+    <div class="q-display"><span id="q-next">001</span></div>
     
     <div class="input-row">
-        <label>จำนวน (ชุด):</label>
-        <input type="number" id="qty" value="1" min="1" oninput="updateTotal()">
+        <label>จำนวน (ชุดละ 50.-)</label>
+        <input type="number" id="qty" value="1" min="1" oninput="calculateAll()">
     </div>
     <div class="input-row">
-        <label>ส่วนลด (บาท):</label>
-        <input type="number" id="discount" value="0" min="0" oninput="updateTotal()">
+        <label>ส่วนลด (บาท)</label>
+        <input type="number" id="discount" value="0" min="0" oninput="calculateAll()">
     </div>
-    <h2 style="text-align:center;">รวม: <span id="total-text">50</span>.-</h2>
-    <button class="btn-print" onclick="printOrder()">พิมพ์ใบเสร็จ</button>
-    <p style="text-align:center;"><button onclick="resetQ()" style="background:none; border:none; color:blue; text-decoration:underline; cursor:pointer;">เริ่มคิว 001 ใหม่</button></p>
+    <div class="input-row">
+        <label style="color:#2d3748; font-weight:bold;">รับเงินมา (บาท)</label>
+        <input type="number" id="cash-received" placeholder="0" oninput="calculateAll()" style="background:#fffaf0; border-color:#fbd38d;">
+    </div>
+
+    <div class="change-box">
+        <div class="change-label">เงินทอน</div>
+        <div class="change-amount"><span id="change-display">0</span>.-</div>
+    </div>
+
+    <h3 style="text-align:center; margin: 15px 0 5px 0;">ยอดสุทธิ: <span id="total-text" style="color:#e53e3e;">50</span>.-</h3>
+    
+    <button class="btn-print" onclick="processOrder()">พิมพ์ใบเสร็จ & รันคิว</button>
+    <p style="text-align:center;"><button onclick="resetQ()" style="background:none; border:none; color:#a0aec0; text-decoration:underline; cursor:pointer; font-size:12px;">Reset Queue 001</button></p>
 </div>
 
 <div id="receipt-section">
     <div class="text-center">
-        <strong>*** ยินดีต้อนรับ ***</strong><br>
-        <span style="font-size: 14px;">ร้านหมี่ไก่ฉีก</span><br>
+        <strong>ใบเสร็จรับเงิน</strong><br>
+        <span>ร้านหมี่ไก่ฉีกแสนอร่อย</span><br>
         <div class="big-q" id="r-q">001</div><br>
         <span id="r-time" style="font-size: 10px;"></span>
     </div>
@@ -69,20 +84,28 @@
         <span>หมี่ไก่ฉีก x <span id="r-qty">1</span></span>
         <span id="r-subtotal">50</span>
     </div>
-    <div class="flex" id="r-discount-div">
+    <div class="flex">
         <span>ส่วนลด</span>
         <span id="r-discount">-0</span>
     </div>
     <div class="line"></div>
     
-    <div class="flex" style="font-weight:bold; font-size: 14px;">
-        <span>รวมทั้งสิ้น</span>
+    <div class="flex" style="font-weight:bold;">
+        <span>รวมสุทธิ</span>
         <span id="r-total">50</span>
+    </div>
+    <div class="flex">
+        <span>รับเงิน</span>
+        <span id="r-cash">0</span>
+    </div>
+    <div class="flex">
+        <span>เงินทอน</span>
+        <span id="r-change">0</span>
     </div>
     <div class="line"></div>
     
     <div class="text-center" style="font-size: 10px; margin-top: 5px;">
-        ขอบคุณที่อุดหนุน<br>อร่อยแล้วบอกต่อด้วยนะ!
+        ขอบคุณที่อุดหนุนครับ
     </div>
 </div>
 
@@ -90,42 +113,61 @@
     let q = parseInt(localStorage.getItem('q_val')) || 1;
     document.getElementById('q-next').innerText = q.toString().padStart(3, '0');
 
-    function updateTotal() {
-        let qty = document.getElementById('qty').value || 0;
-        let disc = document.getElementById('discount').value || 0;
-        document.getElementById('total-text').innerText = (qty * 50) - disc;
+    function calculateAll() {
+        let qty = parseFloat(document.getElementById('qty').value) || 0;
+        let disc = parseFloat(document.getElementById('discount').value) || 0;
+        let cash = parseFloat(document.getElementById('cash-received').value) || 0;
+        
+        let total = (qty * 50) - disc;
+        if (total < 0) total = 0;
+        
+        let change = cash - total;
+        if (change < 0 || isNaN(change)) change = 0;
+
+        document.getElementById('total-text').innerText = total.toLocaleString();
+        document.getElementById('change-display').innerText = change.toLocaleString();
+        
+        return { qty, disc, total, cash, change };
     }
 
-    function printOrder() {
-        let qty = document.getElementById('qty').value;
-        let disc = document.getElementById('discount').value;
-        let total = (qty * 50) - disc;
+    function processOrder() {
+        let data = calculateAll();
+        
+        // ตรวจสอบว่ารับเงินพอไหม
+        if (parseFloat(document.getElementById('cash-received').value) < data.total) {
+            alert("ยอดรับเงินไม่พอครับ!");
+            return;
+        }
+
         let time = new Date().toLocaleString('th-TH', { hour12: false });
 
         // ใส่ข้อมูลลงใบเสร็จ
         document.getElementById('r-q').innerText = q.toString().padStart(3, '0');
         document.getElementById('r-time').innerText = time;
-        document.getElementById('r-qty').innerText = qty;
-        document.getElementById('r-subtotal').innerText = (qty * 50).toLocaleString();
-        document.getElementById('r-discount').innerText = "-" + parseInt(disc).toLocaleString();
-        document.getElementById('r-total').innerText = total.toLocaleString();
+        document.getElementById('r-qty').innerText = data.qty;
+        document.getElementById('r-subtotal').innerText = (data.qty * 50).toLocaleString();
+        document.getElementById('r-discount').innerText = "-" + data.disc.toLocaleString();
+        document.getElementById('r-total').innerText = data.total.toLocaleString();
+        document.getElementById('r-cash').innerText = data.cash.toLocaleString();
+        document.getElementById('r-change').innerText = data.change.toLocaleString();
 
-        // สั่งพิมพ์
+        // พิมพ์
         window.print();
 
-        // อัปเดตคิว
+        // รันคิวต่อ
         q++;
         localStorage.setItem('q_val', q);
         document.getElementById('q-next').innerText = q.toString().padStart(3, '0');
         
-        // ล้างค่า
+        // ล้างค่าสำหรับคนถัดไป
         document.getElementById('qty').value = 1;
         document.getElementById('discount').value = 0;
-        updateTotal();
+        document.getElementById('cash-received').value = "";
+        calculateAll();
     }
 
     function resetQ() {
-        if(confirm("ต้องการรีเซ็ตคิวเป็น 001?")) {
+        if(confirm("ต้องการเริ่มคิวใหม่ที่ 001?")) {
             q = 1;
             localStorage.setItem('q_val', q);
             document.getElementById('q-next').innerText = "001";
