@@ -3,88 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Bluetooth Printer (58mm)</title>
+    <title>Bluetooth Printer Finder</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f9; }
-        button { padding: 15px 25px; font-size: 16px; cursor: pointer; border-radius: 8px; border: none; margin: 5px; }
-        .connect { background-color: #4CAF50; color: white; }
-        .print { background-color: #2196F3; color: white; }
-        #status { margin-top: 20px; color: #666; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; background: #eceff1; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; }
+        button { width: 100%; padding: 12px; font-size: 16px; cursor: pointer; border-radius: 8px; border: none; margin: 10px 0; transition: 0.3s; }
+        .btn-search { background-color: #6200ee; color: white; }
+        .btn-print { background-color: #03dac6; color: black; }
+        .btn-search:disabled { background-color: #ccc; }
+        #info { text-align: left; background: #f9f9f9; padding: 10px; border-radius: 5px; font-size: 13px; margin-top: 15px; display: none; }
+        .status-dot { height: 10px; width: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .connected { background-color: #4caf50; }
     </style>
 </head>
 <body>
 
-    <h2>เครื่องพิมพ์ใบเสร็จ 58mm</h2>
-    <p>เชื่อมต่อผ่าน Web Bluetooth API</p>
+<div class="card">
+    <h2>ตัวจัดการเครื่องพิมพ์</h2>
+    <div id="connection-status">
+        <span class="status-dot" id="dot"></span>
+        <span id="status-text">ยังไม่ได้เชื่อมต่อ</span>
+    </div>
 
-    <button class="connect" onclick="connectBluetooth()">1. เชื่อมต่อเครื่องพิมพ์</button>
-    <br>
-    <button class="print" onclick="printReceipt()">2. พิมพ์ใบเสร็จ</button>
+    <button class="btn-search" onclick="scanAndConnect()">🔍 ค้นหาเครื่องพิมพ์ Bluetooth</button>
+    
+    <div id="info">
+        <strong>ข้อมูลเครื่องที่เชื่อมต่อ:</strong><br>
+        <span id="dev-name"></span><br>
+        <span id="dev-id"></span>
+    </div>
 
-    <div id="status">สถานะ: รอการเชื่อมต่อ...</div>
+    <button class="btn-print" id="btnPrint" onclick="printReceipt()" disabled>🖨️ พิมพ์ใบเสร็จ</button>
+</div>
 
-    <script>
-        let printerCharacteristic;
+<script>
+    let printerCharacteristic;
+    let connectedDevice;
 
-        // ฟังก์ชันเชื่อมต่อ Bluetooth
-        async function connectBluetooth() {
-            try {
-                document.getElementById('status').innerText = "กำลังค้นหาอุปกรณ์...";
-                
-                // ค้นหาอุปกรณ์ Bluetooth ที่ให้บริการ Generic Attribute
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }], // Service มาตรฐานของ Printer ส่วนใหญ่
-                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-                });
+    async function scanAndConnect() {
+        try {
+            // ค้นหาและให้ผู้ใช้เลือกอุปกรณ์
+            // หมายเหตุ: acceptAllDevices: true จะใช้ร่วมกับ services ไม่ได้ในบางเบราว์เซอร์
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [
+                    { services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, // มาตรฐาน Printer
+                    { namePrefix: 'TP' }, // เช่น TP2, TP3
+                    { namePrefix: 'MPT' },
+                    { namePrefix: 'Printer' }
+                ],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
 
-                const server = await device.gatt.connect();
-                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-                
-                // ดึง Characteristic สำหรับการเขียนข้อมูล (Write)
-                const characteristics = await service.getCharacteristics();
-                printerCharacteristic = characteristics.find(c => c.properties.write || c.properties.writeWithoutResponse);
-
-                document.getElementById('status').innerText = "เชื่อมต่อสำเร็จ: " + device.name;
-            } catch (error) {
-                console.error(error);
-                document.getElementById('status').innerText = "ข้อผิดพลาด: " + error;
-            }
-        }
-
-        // ฟังก์ชันส่งข้อมูลไปยังเครื่องพิมพ์
-        async function printReceipt() {
-            if (!printerCharacteristic) {
-                alert("กรุณาเชื่อมต่อเครื่องพิมพ์ก่อน!");
-                return;
-            }
-
-            // คำสั่ง ESC/POS เบื้องต้น
-            const encoder = new TextEncoder(); // ใช้ UTF-8 (ภาษาไทยอาจต้องใช้การแปลงรหัสเฉพาะตัวเครื่อง)
+            document.getElementById('status-text').innerText = "กำลังเชื่อมต่อ...";
             
-            // เตรียมข้อมูลใบเสร็จ (รองรับประมาณ 32 ตัวอักษรสำหรับ 58mm)
-            const commands = [
-                '\x1B\x40',          // Initialize printer
-                '\x1B\x61\x01',      // Align center
-                'MY SHOP\n',         // ชื่อร้าน
-                '--------------------------------\n',
-                '\x1B\x61\x00',      // Align left
-                'Item           Qty    Price\n',
-                'Coffee          1     60.00\n',
-                'Cake            1     85.00\n',
-                '--------------------------------\n',
-                '\x1B\x61\x02',      // Align right
-                'TOTAL: 145.00 THB\n\n',
-                '\x1B\x61\x01',      // Align center
-                'THANK YOU\n',
-                '\n\n\n'             // เว้นบรรทัดสำหรับตัดกระดาษ
-            ];
-
-            for (const cmd of commands) {
-                await printerCharacteristic.writeValue(encoder.encode(cmd));
-            }
+            const server = await device.gatt.connect();
+            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+            const characteristics = await service.getCharacteristics();
             
-            document.getElementById('status').innerText = "ส่งข้อมูลการพิมพ์สำเร็จ!";
+            // ค้นหาช่องทางส่งข้อมูล
+            printerCharacteristic = characteristics.find(c => c.properties.write || c.properties.writeWithoutResponse);
+
+            if (printerCharacteristic) {
+                connectedDevice = device;
+                updateUI(true);
+            }
+        } catch (error) {
+            console.error("Connect Error:", error);
+            alert("การเชื่อมต่อล้มเหลว: " + error.message);
         }
-    </script>
+    }
+
+    function updateUI(isConnected) {
+        if (isConnected) {
+            document.getElementById('status-text').innerText = "เชื่อมต่อแล้ว";
+            document.getElementById('dot').classList.add('connected');
+            document.getElementById('info').style.display = 'block';
+            document.getElementById('dev-name').innerText = "ชื่อ: " + connectedDevice.name;
+            document.getElementById('dev-id').innerText = "ID: " + connectedDevice.id;
+            document.getElementById('btnPrint').disabled = false;
+        }
+    }
+
+    async function printReceipt() {
+        if (!printerCharacteristic) return;
+
+        const encoder = new TextEncoder();
+        // คำสั่ง ESC/POS
+        const data = [
+            '\x1B\x40',          // Reset
+            '\x1B\x61\x01',      // Center
+            '--- TEST PRINT ---\n',
+            'Device: ' + connectedDevice.name + '\n',
+            '--------------------------------\n',
+            '\x1B\x61\x00',      // Left
+            'Hello World!\n',
+            'Bluetooth Printing Works!\n',
+            '--------------------------------\n',
+            '\n\n\n'             // Feed paper
+        ];
+
+        for (const line of data) {
+            await printerCharacteristic.writeValue(encoder.encode(line));
+        }
+    }
+</script>
+
 </body>
 </html>
