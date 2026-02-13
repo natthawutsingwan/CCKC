@@ -3,7 +3,7 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>POS System</title>
+  <title>C-POS System</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="/_sdk/element_sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
@@ -35,8 +35,8 @@
       🛒
      </div>
      <div>
-      <h1 id="header-store-name" class="font-semibold text-lg">CCKCPOS</h1>
-      <p class="text-xs text-white/80">ระบบขายหน้าร้านC-POS</p>
+      <h1 id="header-store-name" class="font-semibold text-lg">C-POS</h1>
+      <p class="text-xs text-white/80">ระบบขายหน้าร้าน C-POS</p>
      </div>
     </div>
     <div class="flex items-center gap-2"><span id="current-date" class="text-sm bg-white/20 px-3 py-1 rounded-full"></span> <span id="connection-status" class="text-xs px-2 py-1 rounded-full bg-yellow-400 text-yellow-900">กำลังเชื่อมต่อ...</span>
@@ -178,7 +178,8 @@
     </div>
     <div id="receipt-print" class="p-4 bg-white">
      <div class="text-center border-b border-dashed pb-4 mb-4">
-      <h2 id="receipt-store-name" class="font-bold text-lg">ร้านค้าของฉัน</h2>
+      <h2 id="receipt-store-name" class="font-bold text-lg">C-POS</h2>
+      <p class="text-xs text-gray-0">C-POS สาขา แม่โจ้ซอย 9</p>
       <p id="receipt-store-phone" class="text-xs text-gray-500"></p>
       <p id="receipt-date" class="text-xs text-gray-500 mt-2"></p>
       <p id="receipt-queue" class="text-2xl font-bold text-purple-600 mt-2">#001</p>
@@ -219,7 +220,7 @@
     
     // Default Configuration
     const defaultConfig = {
-      store_name: 'ร้านค้าของฉัน',
+      store_name: 'CCKCPOS',
       store_phone: '',
       promptpay_id: '',
       custom_qr_url: ''
